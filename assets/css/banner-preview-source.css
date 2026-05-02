@@ -1,0 +1,123 @@
+/**
+ * CookieNod Banner Preview CSS - Source File
+ *
+ * This file contains the human-readable source CSS for the banner preview
+ * feature in the admin area. This is used by admin.js to generate the
+ * live preview of consent banners.
+ *
+ * @package Cookienod
+ */
+
+/* ==========================================================================
+   Banner Base Styles - Light Theme
+   ========================================================================== */
+
+#cs-consent-banner.light {
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top: 1px solid #dddddd;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    color: #1d2327;
+}
+
+#cs-consent-banner.light .cs-btn {
+    padding: 8px 16px;
+    border: 1px solid #cccccc;
+    background: #f6f7f7;
+    color: #1d2327;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#cs-consent-banner.light .cs-btn-primary {
+    background: #2271b1;
+    color: #ffffff;
+    border-color: #2271b1;
+}
+
+#cs-consent-banner.light .cs-btn-secondary {
+    background: transparent;
+}
+
+#cs-consent-banner.light .cs-btn-tertiary {
+    background: #f0f0f1;
+}
+
+/* ==========================================================================
+   Banner Base Styles - Dark Theme
+   ========================================================================== */
+
+#cs-consent-banner.dark {
+    left: 0;
+    right: 0;
+    background: #1f2937;
+    border-top: 1px solid #374151;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+    color: #f9fafb;
+}
+
+#cs-consent-banner.dark .cs-btn {
+    padding: 8px 16px;
+    border: 1px solid #4b5563;
+    background: #111827;
+    color: #f9fafb;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#cs-consent-banner.dark .cs-btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+#cs-consent-banner.dark .cs-btn-secondary {
+    background: transparent;
+    color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+#cs-consent-banner.dark .cs-btn-tertiary {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+}
+
+/* ==========================================================================
+   Banner Position Styles
+   ========================================================================== */
+
+#cs-consent-banner.position-top {
+    position: absolute;
+    top: 0;
+}
+
+#cs-consent-banner.position-bottom {
+    position: absolute;
+    bottom: 0;
+}
+
+/* ==========================================================================
+   Banner Content Styles
+   ========================================================================== */
+
+#cs-consent-banner .cs-banner-title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: inherit;
+}
+
+#cs-consent-banner .cs-banner-description {
+    margin: 0;
+    color: inherit;
+}
+
+#cs-consent-banner .cs-banner-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}

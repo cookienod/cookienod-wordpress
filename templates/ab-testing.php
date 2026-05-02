@@ -9,13 +9,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$ab_testing = new CookieNod_AB_Testing();
-$tests = $ab_testing->get_all_tests();
-$active_test = null;
+$cookienod_ab_testing = new CookieNod_AB_Testing();
+$cookienod_tests = $cookienod_ab_testing->get_all_tests();
+$cookienod_active_test = null;
 
-foreach ($tests as $test) {
-    if ($test['status'] === 'active') {
-        $active_test = $test;
+foreach ($cookienod_tests as $cookienod_test) {
+    if ($cookienod_test['status'] === 'active') {
+        $cookienod_active_test = $cookienod_test;
         break;
     }
 }
@@ -26,20 +26,20 @@ foreach ($tests as $test) {
 
     <div class="cookienod-card">
         <div class="nav-tab-wrapper">
-            <a href="#active-tests" class="nav-tab nav-tab-active"><?php _e('Active Test', 'cookienod'); ?></a>
-            <a href="#all-tests" class="nav-tab"><?php _e('All Tests', 'cookienod'); ?></a>
-            <a href="#create-test" class="nav-tab"><?php _e('Create Test', 'cookienod'); ?></a>
+            <a href="#active-tests" class="nav-tab nav-tab-active"><?php esc_html_e('Active Test', 'cookienod'); ?></a>
+            <a href="#all-tests" class="nav-tab"><?php esc_html_e('All Tests', 'cookienod'); ?></a>
+            <a href="#create-test" class="nav-tab"><?php esc_html_e('Create Test', 'cookienod'); ?></a>
         </div>
 
         <!-- Active Test -->
-        <div id="active-tests" class="cookienod-tab-content" data-test-id="<?php echo $active_test ? esc_attr($active_test['id']) : ''; ?>">
-            <?php if ($active_test) : ?>
-                <?php $stats = $ab_testing->get_test_stats($active_test['id']); ?>
-                <h2><?php echo esc_html($active_test['name']); ?></h2>
+        <div id="active-tests" class="cookienod-tab-content" data-test-id="<?php echo $cookienod_active_test ? esc_attr($cookienod_active_test['id']) : ''; ?>">
+            <?php if ($cookienod_active_test) : ?>
+                <?php $cookienod_stats = $cookienod_ab_testing->get_test_stats($cookienod_active_test['id']); ?>
+                <h2><?php echo esc_html($cookienod_active_test['name']); ?></h2>
 
-                <div class="cookienod-ab-stats" data-test-id="<?php echo esc_attr($active_test['id']); ?>">
-                    <?php foreach (json_decode($active_test['variants'], true) as $variant) : ?>
-                        <?php $variant_stats = $stats[$variant['id']] ?? array(
+                <div class="cookienod-ab-stats" data-test-id="<?php echo esc_attr($cookienod_active_test['id']); ?>">
+                    <?php foreach (json_decode($cookienod_active_test['variants'], true) as $cookienod_variant) : ?>
+                        <?php $cookienod_variant_stats = $cookienod_stats[$cookienod_variant['id']] ?? array(
                             'impressions' => 0,
                             'accept_all' => 0,
                             'reject_all' => 0,
@@ -47,25 +47,25 @@ foreach ($tests as $test) {
                         ); ?>
 
                         <div class="cookienod-ab-variant">
-                            <h3><?php echo esc_html($variant['name']); ?></h3>
+                            <h3><?php echo esc_html($cookienod_variant['name']); ?></h3>
                             <div class="cookienod-ab-metrics">
                                 <div class="metric">
-                                    <span class="metric-value"><?php echo number_format($variant_stats['impressions']); ?></span>
-                                    <span class="metric-label"><?php _e('Impressions', 'cookienod'); ?></span>
+                                    <span class="metric-value"><?php echo esc_html(number_format($cookienod_variant_stats['impressions'])); ?></span>
+                                    <span class="metric-label"><?php esc_html_e('Impressions', 'cookienod'); ?></span>
                                 </div>
                                 <div class="metric">
-                                    <span class="metric-value"><?php echo number_format($variant_stats['accept_all']); ?></span>
-                                    <span class="metric-label"><?php _e('Accepts', 'cookienod'); ?></span>
+                                    <span class="metric-value"><?php echo esc_html(number_format($cookienod_variant_stats['accept_all'])); ?></span>
+                                    <span class="metric-label"><?php esc_html_e('Accepts', 'cookienod'); ?></span>
                                 </div>
                                 <div class="metric">
-                                    <span class="metric-value"><?php echo $variant_stats['accept_rate']; ?>%</span>
-                                    <span class="metric-label"><?php _e('Accept Rate', 'cookienod'); ?></span>
+                                    <span class="metric-value"><?php echo esc_html(number_format($cookienod_variant_stats['accept_rate'])); ?>%</span>
+                                    <span class="metric-label"><?php esc_html_e('Accept Rate', 'cookienod'); ?></span>
                                 </div>
                             </div>
 
                             <div class="cookienod-ab-actions">
-                                <button class="button button-primary set-winner" data-variant="<?php echo esc_attr($variant['id']); ?>">
-                                    <?php _e('Set as Winner', 'cookienod'); ?>
+                                <button class="button button-primary set-winner" data-variant="<?php echo esc_attr($cookienod_variant['id']); ?>">
+                                    <?php esc_html_e('Set as Winner', 'cookienod'); ?>
                                 </button>
                             </div>
                         </div>
@@ -73,46 +73,46 @@ foreach ($tests as $test) {
                 </div>
 
                 <p>
-                    <strong><?php _e('Start Date:', 'cookienod'); ?></strong>
-                    <?php echo esc_html($active_test['start_date']); ?>
+                    <strong><?php esc_html_e('Start Date:', 'cookienod'); ?></strong>
+                    <?php echo esc_html($cookienod_active_test['start_date']); ?>
                 </p>
 
-                <button class="button" id="stop-test"><?php _e('Stop Test', 'cookienod'); ?></button>
+                <button class="button" id="stop-test"><?php esc_html_e('Stop Test', 'cookienod'); ?></button>
 
             <?php else : ?>
-                <p><?php _e('No active A/B test. Create a new test to start optimizing your consent banner.', 'cookienod'); ?></p>
-                <a href="#create-test" class="button button-primary"><?php _e('Create Test', 'cookienod'); ?></a>
+                <p><?php esc_html_e('No active A/B test. Create a new test to start optimizing your consent banner.', 'cookienod'); ?></p>
+                <a href="#create-test" class="button button-primary"><?php esc_html_e('Create Test', 'cookienod'); ?></a>
             <?php endif; ?>
         </div>
 
         <!-- All Tests -->
         <div id="all-tests" class="cookienod-tab-content" style="display:none;">
-            <?php if ($tests) : ?>
+            <?php if ($cookienod_tests) : ?>
                 <table class="wp-list-table widefat striped">
                     <thead>
                         <tr>
-                            <th><?php _e('Name', 'cookienod'); ?></th>
-                            <th><?php _e('Status', 'cookienod'); ?></th>
-                            <th><?php _e('Variants', 'cookienod'); ?></th>
-                            <th><?php _e('Start Date', 'cookienod'); ?></th>
-                            <th><?php _e('Winner', 'cookienod'); ?></th>
-                            <th><?php _e('Actions', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Name', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Status', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Variants', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Start Date', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Winner', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Actions', 'cookienod'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($tests as $test) : ?>
-                            <?php $variants = json_decode($test['variants'], true); ?>
+                        <?php foreach ($cookienod_tests as $cookienod_test) : ?>
+                            <?php $cookienod_variants = json_decode($cookienod_test['variants'], true); ?>
                             <tr>
-                                <td><?php echo esc_html($test['name']); ?></td>
-                                <td><span class="status-badge status-<?php echo esc_attr($test['status']); ?>">
-                                    <?php echo esc_html(ucfirst($test['status'])); ?></span></td>
-                                <td><?php echo count($variants); ?></td>
-                                <td><?php echo $test['start_date'] ? esc_html($test['start_date']) : '-'; ?></td>
+                                <td><?php echo esc_html($cookienod_test['name']); ?></td>
+                                <td><span class="status-badge status-<?php echo esc_attr($cookienod_test['status']); ?>">
+                                    <?php echo esc_html(ucfirst($cookienod_test['status'])); ?></span></td>
+                                <td><?php echo count($cookienod_variants); ?></td>
+                                <td><?php echo $cookienod_test['start_date'] ? esc_html($cookienod_test['start_date']) : '-'; ?></td>
                                 <td>
-                                    <?php if ($test['winner']) : ?>
-                                        <?php foreach ($variants as $v) {
-                                            if ($v['id'] == $test['winner']) {
-                                                echo esc_html($v['name']);
+                                    <?php if ($cookienod_test['winner']) : ?>
+                                        <?php foreach ($cookienod_variants as $cookienod_v) {
+                                            if ($cookienod_v['id'] == $cookienod_test['winner']) {
+                                                echo esc_html($cookienod_v['name']);
                                                 break;
                                             }
                                         } ?>
@@ -121,16 +121,16 @@ foreach ($tests as $test) {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($test['status'] === 'draft') : ?>
-                                        <button class="button button-primary start-test-btn" data-test="<?php echo esc_attr($test['id']); ?>">
-                                            <?php _e('Start Test', 'cookienod'); ?>
+                                    <?php if ($cookienod_test['status'] === 'draft') : ?>
+                                        <button class="button button-primary start-test-btn" data-test="<?php echo esc_attr($cookienod_test['id']); ?>">
+                                            <?php esc_html_e('Start Test', 'cookienod'); ?>
                                         </button>
-                                    <?php elseif ($test['status'] === 'active') : ?>
-                                        <button class="button stop-test-btn" data-test="<?php echo esc_attr($test['id']); ?>">
-                                            <?php _e('Stop', 'cookienod'); ?>
+                                    <?php elseif ($cookienod_test['status'] === 'active') : ?>
+                                        <button class="button stop-test-btn" data-test="<?php echo esc_attr($cookienod_test['id']); ?>">
+                                            <?php esc_html_e('Stop', 'cookienod'); ?>
                                         </button>
                                     <?php else : ?>
-                                        <span class="button button-secondary" disabled><?php _e('Completed', 'cookienod'); ?></span>
+                                        <span class="button button-secondary" disabled><?php esc_html_e('Completed', 'cookienod'); ?></span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -138,67 +138,67 @@ foreach ($tests as $test) {
                     </tbody>
                 </table>
             <?php else : ?>
-                <p><?php _e('No tests created yet.', 'cookienod'); ?></p>
+                <p><?php esc_html_e('No tests created yet.', 'cookienod'); ?></p>
             <?php endif; ?>
         </div>
 
         <!-- Create Test -->
         <div id="create-test" class="cookienod-tab-content" style="display:none;">
-            <h2><?php _e('Create New A/B Test', 'cookienod'); ?></h2>
+            <h2><?php esc_html_e('Create New A/B Test', 'cookienod'); ?></h2>
 
             <form id="create-test-form">
                 <table class="form-table">
                     <tr>
-                        <th><label for="test-name"><?php _e('Test Name', 'cookienod'); ?></label></th>
+                        <th><label for="test-name"><?php esc_html_e('Test Name', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="test-name" class="regular-text" required />
-                            <p class="description"><?php _e('Give your test a descriptive name', 'cookienod'); ?></p>
+                            <p class="description"><?php esc_html_e('Give your test a descriptive name', 'cookienod'); ?></p>
                         </td>
                     </tr>
                 </table>
 
-                <h3><?php _e('Variants', 'cookienod'); ?></h3>
+                <h3><?php esc_html_e('Variants', 'cookienod'); ?></h3>
 
                 <div id="test-variants">
                     <div class="test-variant" data-id="1">
-                        <h4><?php _e('Variant A (Control)', 'cookienod'); ?></h4>
-                        <label><?php _e('Name', 'cookienod'); ?></label>
-                        <input type="text" class="variant-name" value="<?php _e('Original', 'cookienod'); ?>" />
+                        <h4><?php esc_html_e('Variant A (Control)', 'cookienod'); ?></h4>
+                        <label><?php esc_html_e('Name', 'cookienod'); ?></label>
+                        <input type="text" class="variant-name" value="<?php echo esc_html_e('Original', 'cookienod'); ?>" />
 
-                        <label><?php _e('Banner Position', 'cookienod'); ?></label>
+                        <label><?php esc_html_e('Banner Position', 'cookienod'); ?></label>
                         <select class="variant-position">
-                            <option value="bottom"><?php _e('Bottom', 'cookienod'); ?></option>
-                            <option value="top"><?php _e('Top', 'cookienod'); ?></option>
-                            <option value="center"><?php _e('Center', 'cookienod'); ?></option>
+                            <option value="bottom"><?php esc_html_e('Bottom', 'cookienod'); ?></option>
+                            <option value="top"><?php esc_html_e('Top', 'cookienod'); ?></option>
+                            <option value="center"><?php esc_html_e('Center', 'cookienod'); ?></option>
                         </select>
 
-                        <label><?php _e('Accept Button Color', 'cookienod'); ?></label>
+                        <label><?php esc_html_e('Accept Button Color', 'cookienod'); ?></label>
                         <input type="color" class="variant-primary-color" value="#10b981" />
                     </div>
 
                     <div class="test-variant" data-id="2">
-                        <h4><?php _e('Variant B', 'cookienod'); ?></h4>
+                        <h4><?php esc_html_e('Variant B', 'cookienod'); ?></h4>
 
-                        <label><?php _e('Name', 'cookienod'); ?></label>
-                        <input type="text" class="variant-name" value="<?php _e('Test Variant', 'cookienod'); ?>" />
+                        <label><?php esc_html_e('Name', 'cookienod'); ?></label>
+                        <input type="text" class="variant-name" value="<?php echo esc_html_e('Test Variant', 'cookienod'); ?>" />
 
-                        <label><?php _e('Banner Position', 'cookienod'); ?></label>
+                        <label><?php esc_html_e('Banner Position', 'cookienod'); ?></label>
                         <select class="variant-position">
-                            <option value="bottom"><?php _e('Bottom', 'cookienod'); ?></option>
-                            <option value="top"><?php _e('Top', 'cookienod'); ?></option>
-                            <option value="center" selected><?php _e('Center', 'cookienod'); ?></option>
+                            <option value="bottom"><?php esc_html_e('Bottom', 'cookienod'); ?></option>
+                            <option value="top"><?php esc_html_e('Top', 'cookienod'); ?></option>
+                            <option value="center" selected><?php esc_html_e('Center', 'cookienod'); ?></option>
                         </select>
 
-                        <label><?php _e('Accept Button Color', 'cookienod'); ?></label>
+                        <label><?php esc_html_e('Accept Button Color', 'cookienod'); ?></label>
                         <input type="color" class="variant-primary-color" value="#3b82f6" />
                     </div>
                 </div>
 
                 <p>
-                    <button type="button" class="button" id="add-variant"><?php _e('Add Variant', 'cookienod'); ?></button>
+                    <button type="button" class="button" id="add-variant"><?php esc_html_e('Add Variant', 'cookienod'); ?></button>
                 </p>
 
-                <h3><?php _e('Traffic Split', 'cookienod'); ?></h3>
+                <h3><?php esc_html_e('Traffic Split', 'cookienod'); ?></h3>
 
                 <div id="traffic-split">
                     <input type="range" min="0" max="100" value="50" class="split-slider" />
@@ -206,7 +206,7 @@ foreach ($tests as $test) {
                 </div>
 
                 <p class="submit">
-                    <button type="submit" class="button button-primary"><?php _e('Create Test', 'cookienod'); ?></button>
+                    <button type="submit" class="button button-primary"><?php esc_html_e('Create Test', 'cookienod'); ?></button>
                 </p>
             </form>
         </div>

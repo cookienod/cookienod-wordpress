@@ -113,30 +113,19 @@ class CookieNod_Google_Consent_Mode {
 
         $default_state = $this->get_default_consent_state();
 
-        ?>
-        <!-- Google Consent Mode v2 - Default Consent -->
-        <script type="text/javascript">
-            /* <![CDATA[ */
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
+        // Register and enqueue a handle for GCM default consent script
+        wp_register_script('cookienod-gcm-default', false, array(), COOKIENOD_VERSION, false);
+        wp_enqueue_script('cookienod-gcm-default');
 
-            // Set default consent (denied for all except necessary)
-            gtag('consent', 'default', <?php echo json_encode($default_state); ?>);
+        $inline_script = "/* Google Consent Mode v2 - Default Consent */\n";
+        $inline_script .= "window.dataLayer = window.dataLayer || [];\n";
+        $inline_script .= "function gtag(){dataLayer.push(arguments);}\n";
+        $inline_script .= "gtag('consent', 'default', " . wp_json_encode($default_state) . ");\n";
+        $inline_script .= "gtag('set', 'url_passthrough', true);\n";
+        $inline_script .= "gtag('set', 'ads_data_redaction', true);\n";
+        $inline_script .= "gtag('event', 'consent_init', {'consent_source': 'cookienod_wp', 'consent_mode_version': '2.0'});\n";
 
-            // Enable URL passthrough for measurement
-            gtag('set', 'url_passthrough', true);
-            gtag('set', 'ads_data_redaction', true);
-
-            // Push initial event
-            gtag('event', 'consent_init', {
-                'consent_source': 'cookienod_wp',
-                'consent_mode_version': '2.0'
-            });
-            /* ]>]> */
-        </script>
-        <?php
+        wp_add_inline_script('cookienod-gcm-default', $inline_script);
 
         // Also output for Tag Manager if enabled
         if ($this->options['gcm_enable_gtm'] ?? true) {
@@ -151,7 +140,8 @@ class CookieNod_Google_Consent_Mode {
         $state = array();
 
         // Get visitor's saved consent if available
-        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true) : array();
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true) : array();
 
         foreach ($this->consent_types as $type => $config) {
             // Security storage is always granted
@@ -175,143 +165,68 @@ class CookieNod_Google_Consent_Mode {
     }
 
     /**
-     * Output GTM-specific consent state
+     * Output GTM-specific consent state using wp_add_inline_script
      */
     private function output_gtm_consent_state() {
-        ?>
-        <script type="text/javascript">
-            /* <![CDATA[ */
-            // For Google Tag Manager
-            (function() {
-                var consentData = window.dataLayer.find(function(item) {
-                    return item[0] === 'consent' && item[1] === 'default';
-                });
+        wp_register_script('cookienod-gcm-gtm', false, array(), COOKIENOD_VERSION, false);
+        wp_enqueue_script('cookienod-gcm-gtm');
 
-                if (consentData) {
-                    // Pass consent to dataLayer for GTM
-                    window.dataLayer.push({
-                        'event': 'default_consent',
-                        'consent': consentData[2]
-                    });
-                }
-            })();
-            /* ]>]> */
-        </script>
-        <?php
+        $inline_script = "/* For Google Tag Manager */\n";
+        $inline_script .= "(function(){\n";
+        $inline_script .= "  var consentData = window.dataLayer.find(function(item){ return item[0]==='consent' && item[1]==='default'; });\n";
+        $inline_script .= "  if(consentData){ window.dataLayer.push({'event':'default_consent','consent':consentData[2]}); }\n";
+        $inline_script .= "})();\n";
+
+        wp_add_inline_script('cookienod-gcm-gtm', $inline_script);
     }
 
     /**
-     * Output GCM update script
+     * Output GCM update script using wp_add_inline_script
      */
     public function output_gcm_update_script() {
         if (!$this->is_enabled()) {
             return;
         }
 
-        ?>
-        <!-- Google Consent Mode v2 - Consent Update Handler -->
-        <script type="text/javascript">
-            /* <![CDATA[ */
-            (function() {
-                // Map cookie categories to GCM consent types
-                var gcmMapping = <?php echo json_encode($this->category_mapping); ?>;
+        wp_register_script('cookienod-gcm-update', false, array(), COOKIENOD_VERSION, false);
+        wp_enqueue_script('cookienod-gcm-update');
 
-                // Update GCM consent based on user preferences
-                function updateGCMConsent(preferences) {
-                    if (typeof gtag !== 'function') {
-                        console.warn('[CookieNod] gtag not available');
-                        return;
-                    }
+        $gcm_mapping = $this->category_mapping;
+        $inline_script = "/* Google Consent Mode v2 - Consent Update Handler */\n";
+        $inline_script .= "(function(){\n";
+        $inline_script .= "  var gcmMapping = " . wp_json_encode($gcm_mapping) . ";\n";
+        $inline_script .= "  function updateGCMConsent(preferences){\n";
+        $inline_script .= "    if(typeof gtag !== 'function'){console.warn('[CookieNod] gtag not available');return;}\n";
+        $inline_script .= "    var consentUpdate = {};\n";
+        $inline_script .= "    var hasChanges = false;\n";
+        $inline_script .= "    for(var category in preferences){\n";
+        $inline_script .= "      if(preferences[category]===true && gcmMapping[category]){\n";
+        $inline_script .= "        gcmMapping[category].forEach(function(consentType){\n";
+        $inline_script .= "          if(consentUpdate[consentType]!=='granted'){consentUpdate[consentType]='granted';hasChanges=true;}\n";
+        $inline_script .= "        });\n";
+        $inline_script .= "      }\n";
+        $inline_script .= "    }\n";
+        $inline_script .= "    for(var type in gcmMapping){\n";
+        $inline_script .= "      gcmMapping[type].forEach(function(consentType){\n";
+        $inline_script .= "        if(!consentUpdate[consentType]){consentUpdate[consentType]='denied';hasChanges=true;}\n";
+        $inline_script .= "      });\n";
+        $inline_script .= "    }\n";
+        $inline_script .= "    if(hasChanges){\n";
+        $inline_script .= "      gtag('consent','update',consentUpdate);\n";
+        $inline_script .= "      if(window.dataLayer){window.dataLayer.push({'event':'consent_update','consent':consentUpdate,'consent_source':'cookienod_wp'});}\n";
+        $inline_script .= "      console.log('[CookieNod] GCM consent updated:',consentUpdate);\n";
+        $inline_script .= "    }\n";
+        $inline_script .= "  }\n";
+        $inline_script .= "  window.addEventListener('cookiePreferencesChanged',function(e){\n";
+        $inline_script .= "    if(e.detail){updateGCMConsent(e.detail);try{document.cookie='cookienod_consent='+JSON.stringify(e.detail)+';path=/;SameSite=Strict';}catch(err){}}\n";
+        $inline_script .= "  });\n";
+        $inline_script .= "  if(window.CookieManager&&window.CookieManager.preferences){updateGCMConsent(window.CookieManager.preferences);}\n";
+        $inline_script .= "  window.addEventListener('cookienodConsentAccepted',function(e){if(window.dataLayer){window.dataLayer.push({'event':'cookienod_consent_accepted','consent_status':'accepted_all'});}});\n";
+        $inline_script .= "  window.addEventListener('cookienodConsentRejected',function(e){if(window.dataLayer){window.dataLayer.push({'event':'cookienod_consent_rejected','consent_status':'rejected_all'});}});\n";
+        $inline_script .= "  window.addEventListener('cookienodConsentCustomized',function(e){if(window.dataLayer&&e.detail){window.dataLayer.push({'event':'cookienod_consent_customized','consent_preferences':e.detail});}});\n";
+        $inline_script .= "})();\n";
 
-                    var consentUpdate = {};
-                    var hasChanges = false;
-
-                    // Map each category to corresponding GCM types
-                    for (var category in preferences) {
-                        if (preferences[category] === true && gcmMapping[category]) {
-                            gcmMapping[category].forEach(function(consentType) {
-                                if (consentUpdate[consentType] !== 'granted') {
-                                    consentUpdate[consentType] = 'granted';
-                                    hasChanges = true;
-                                }
-                            });
-                        }
-                    }
-
-                    // Set denied for non-consented types
-                    for (var type in gcmMapping) {
-                        gcmMapping[type].forEach(function(consentType) {
-                            if (!consentUpdate[consentType]) {
-                                consentUpdate[consentType] = 'denied';
-                                hasChanges = true;
-                            }
-                        });
-                    }
-
-                    if (hasChanges) {
-                        gtag('consent', 'update', consentUpdate);
-
-                        // Push event to dataLayer for GTM
-                        if (window.dataLayer) {
-                            window.dataLayer.push({
-                                'event': 'consent_update',
-                                'consent': consentUpdate,
-                                'consent_source': 'cookienod_wp'
-                            });
-                        }
-
-                        console.log('[CookieNod] GCM consent updated:', consentUpdate);
-                    }
-                }
-
-                // Listen for consent preference changes
-                window.addEventListener('cookiePreferencesChanged', function(e) {
-                    if (e.detail) {
-                        updateGCMConsent(e.detail);
-
-                        // Store consent for page reloads
-                        try {
-                            document.cookie = 'cookienod_consent=' + JSON.stringify(e.detail) + '; path=/; SameSite=Strict';
-                        } catch(err) {}
-                    }
-                });
-
-                // Also check on load
-                if (window.CookieManager && window.CookieManager.preferences) {
-                    updateGCMConsent(window.CookieManager.preferences);
-                }
-
-                // Support for consent mode v2 specific events
-                window.addEventListener('cookienodConsentAccepted', function(e) {
-                    if (window.dataLayer) {
-                        window.dataLayer.push({
-                            'event': 'cookienod_consent_accepted',
-                            'consent_status': 'accepted_all'
-                        });
-                    }
-                });
-
-                window.addEventListener('cookienodConsentRejected', function(e) {
-                    if (window.dataLayer) {
-                        window.dataLayer.push({
-                            'event': 'cookienod_consent_rejected',
-                            'consent_status': 'rejected_all'
-                        });
-                    }
-                });
-
-                window.addEventListener('cookienodConsentCustomized', function(e) {
-                    if (window.dataLayer && e.detail) {
-                        window.dataLayer.push({
-                            'event': 'cookienod_consent_customized',
-                            'consent_preferences': e.detail
-                        });
-                    }
-                });
-            })();
-            /* ]>]> */
-        </script>
-        <?php
+        wp_add_inline_script('cookienod-gcm-update', $inline_script);
     }
 
     /**
@@ -319,7 +234,8 @@ class CookieNod_Google_Consent_Mode {
      */
     public function filter_gtm_container($code, $container_id) {
         // Check if user has consented to analytics/marketing
-        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true) : array();
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true) : array();
 
         if (empty($saved_consent['marketing']) && empty($saved_consent['analytics'])) {
             // User hasn't consented - only load GTM with limited consent
@@ -334,7 +250,8 @@ class CookieNod_Google_Consent_Mode {
      * Dequeue analytics scripts if not consented
      */
     public function dequeue_analytics_scripts() {
-        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true) : array();
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+        $saved_consent = isset($_COOKIE['cookienod_consent']) ? json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true) : array();
 
         // List of known analytics script handles to block
         $analytics_scripts = apply_filters('cookienod_analytics_scripts', array(

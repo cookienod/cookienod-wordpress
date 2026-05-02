@@ -65,6 +65,9 @@ class CookieNod_Plugin_Compat {
         // Add consent-aware widget controls
         add_action('elementor/element/before_section_end', array($this, 'add_elementor_consent_controls'), 10, 3);
 
+        // Add data attributes to widget wrapper for JavaScript consent sync
+        add_action('elementor/element/before_render', array($this, 'add_elementor_widget_data_attributes'), 10, 1);
+
         // Filter widgets based on consent
         add_filter('elementor/widget/render_content', array($this, 'filter_elementor_widget'), 10, 2);
 
@@ -82,9 +85,10 @@ class CookieNod_Plugin_Compat {
      * Elementor editor compatibility
      */
     public function elementor_editor_compat() {
-        // Ensure banner doesn't show in Elementor editor
-        if (isset($_GET['elementor-preview'])) {
-            remove_action('wp_footer', array(Cookienod::get_instance(), 'render_consent_banner'), 1);
+        // Ensure banner doesn't show in Elementor editor/preview
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce not required for preview check
+        if (isset($_GET['elementor-preview']) || isset($_GET['elementor-edit'])) {
+            add_filter('cookienod_disable_banner', '__return_true');
         }
     }
 
@@ -138,17 +142,44 @@ class CookieNod_Plugin_Compat {
                 ),
             )
         );
+
+    }
+
+    /**
+     * Add data attribute to Elementor widget wrapper for JavaScript consent sync
+     */
+    public function add_elementor_widget_data_attributes($element, $args) {
+        $settings = $element->get_settings();
+
+        if (!empty($settings['cookienod_require_consent'])) {
+            $category = $settings['cookienod_consent_category'] ?? 'marketing';
+            $element->add_render_attribute('_wrapper', 'data-consent-category', esc_attr($category));
+        }
     }
 
     /**
      * Filter Elementor widget content based on consent
+     * Note: In 'auto' mode, blocking is handled by cookienod.min.js via CSS classes
      */
     public function filter_elementor_widget($content, $widget) {
         $settings = $widget->get_settings();
 
         if (!empty($settings['cookienod_require_consent'])) {
             $category = $settings['cookienod_consent_category'] ?? 'marketing';
+            $block_mode = $this->options['block_mode'] ?? 'auto';
 
+            // In 'auto' mode, cookienod.min.js handles blocking via CSS classes
+            // Don't show server-side placeholders, let JS handle it
+            if ($block_mode === 'auto') {
+                // Add data attribute for JS to handle
+                if (!$this->has_consent($category)) {
+                    // Let JS handle the blocking via CSS class (prefix_class does this)
+                    return $content;
+                }
+                return $content;
+            }
+
+            // In manual/silent modes, show server-side placeholders
             if (!$this->has_consent($category)) {
                 return $this->get_consent_placeholder($category);
             }
@@ -199,10 +230,11 @@ class CookieNod_Plugin_Compat {
 
     /**
      * Add Gravity Forms consent field
+     * Note: Actual consent data is populated via JavaScript from localStorage
      */
     public function add_gform_consent_field($form_tag, $form) {
-        $consent_html = '<input type="hidden" name="cookienod_consent_data" value="' .
-                        esc_attr(json_encode($this->get_consent_data())) . '" />';
+        // Add hidden field for consent data (populated by JS from localStorage)
+        $consent_html = '<input type="hidden" name="cookienod_consent_data" value="" id="cookienod_gform_consent_' . esc_attr($form['id']) . '" />';
 
         // Add nonce for security
         $consent_html .= wp_nonce_field('cookienod_gform_' . $form['id'], 'cookienod_gform_nonce', true, false);
@@ -212,19 +244,32 @@ class CookieNod_Plugin_Compat {
 
     /**
      * Log Gravity Forms consent on submission
+     * Reads consent from POST data (populated by JS from localStorage)
      */
     public function log_gform_consent($entry, $form) {
         // Verify nonce
         if (!isset($_POST['cookienod_gform_nonce']) ||
-            !wp_verify_nonce($_POST['cookienod_gform_nonce'], 'cookienod_gform_' . $form['id'])) {
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['cookienod_gform_nonce'])), 'cookienod_gform_' . $form['id'])) {
             return;
         }
 
-        // Store consent data
-        gform_update_meta($entry['id'], 'cookienod_consent', $this->get_consent_data());
+        // Get consent data from submitted form (populated by JS)
+        $consent_data = array();
+        if (isset($_POST['cookienod_consent_data'])) {
+            $consent_raw = sanitize_text_field(wp_unslash($_POST['cookienod_consent_data']));
+            $consent_data = json_decode($consent_raw, true);
+        }
+
+        // Fallback to cookie if no POST data
+        if (empty($consent_data)) {
+            $consent_data = $this->get_consent_data();
+        }
+
+        // Store consent data with entry
+        gform_update_meta($entry['id'], 'cookienod_consent', $consent_data);
 
         // Log if marketing consent is given
-        if ($this->has_consent('marketing')) {
+        if (!empty($consent_data['marketing'])) {
             do_action('cookienod_gform_marketing_consent', $entry, $form);
         }
     }
@@ -255,6 +300,7 @@ class CookieNod_Plugin_Compat {
 
     /**
      * Add Contact Form 7 consent field
+     * Note: Actual consent data is populated via JavaScript from localStorage
      */
     public function add_cf7_consent_field() {
         wpcf7_add_form_tag('cookienod_consent', array($this, 'render_cf7_consent_field'));
@@ -264,23 +310,22 @@ class CookieNod_Plugin_Compat {
      * Render CF7 consent field
      */
     public function render_cf7_consent_field($tag) {
-        $consent_data = $this->get_consent_data();
+        // Hidden field for consent data (populated by JS from localStorage)
+        $html = '<input type="hidden" name="cookienod_consent_data" value="" class="cookienod-consent-input" />';
 
-        $html = '<input type="hidden" name="cookienod_consent_data" value="' .
-                esc_attr(json_encode($consent_data)) . '" />';
-
+        // Add nonce for security
         $html .= '<input type="hidden" name="cookienod_consent_nonce" value="' .
                 wp_create_nonce('cookienod_cf7_consent') . '" />';
 
         // Add consent summary for display
         if (!empty($tag->values) && in_array('show_summary', $tag->values)) {
-            $html .= '<div class="wpcf7-consent-summary">';
+            $html .= '<div class="wpcf7-consent-summary" data-cookienod-summary="true">';
             $html .= '<p><strong>' . esc_html__('Your Privacy Settings:', 'cookienod') . '</strong></p>';
-            $html .= '<ul>';
-            foreach ($consent_data as $cat => $value) {
-                $html .= '<li>' . esc_html(ucfirst($cat)) . ': ' .
-                         ($value ? '✓' : '✗') . '</li>';
-            }
+            $html .= '<ul class="cookienod-consent-list">';
+            $html .= '<li data-category="necessary">Necessary: <span class="cookienod-status">✓</span></li>';
+            $html .= '<li data-category="functional">Functional: <span class="cookienod-status">✗</span></li>';
+            $html .= '<li data-category="analytics">Analytics: <span class="cookienod-status">✗</span></li>';
+            $html .= '<li data-category="marketing">Marketing: <span class="cookienod-status">✗</span></li>';
             $html .= '</ul>';
             $html .= '</div>';
         }
@@ -305,6 +350,7 @@ class CookieNod_Plugin_Compat {
 
     /**
      * Log CF7 submission with consent
+     * Reads consent from POST data (populated by JS from localStorage)
      */
     public function log_cf7_consent($contact_form) {
         $submission = WPCF7_Submission::get_instance();
@@ -312,11 +358,20 @@ class CookieNod_Plugin_Compat {
         if ($submission) {
             $data = $submission->get_posted_data();
 
-            if (isset($data['cookienod_consent_data'])) {
-                $consent = json_decode(sanitize_text_field($data['cookienod_consent_data']), true);
+            if (isset($data['cookienod_consent_data']) && !empty($data['cookienod_consent_data'][0])) {
+                $consent_raw = sanitize_text_field(wp_unslash($data['cookienod_consent_data'][0]));
+                $consent = json_decode($consent_raw, true);
 
                 // Store with submission meta
                 do_action('cookienod_cf7_submission', $contact_form, $consent);
+
+                // Also attach to WPCF7 mail data
+                add_action('wpcf7_mail_components', function($components) use ($consent) {
+                    if (!empty($consent)) {
+                        $components['additional']['Cookie Consent'] = wp_json_encode($consent);
+                    }
+                    return $components;
+                }, 10, 1);
             }
         }
     }
@@ -365,21 +420,40 @@ class CookieNod_Plugin_Compat {
      * Inject form integration scripts
      */
     public function inject_form_scripts() {
-        // Only add if we have consent data
-        if (!isset($_COOKIE['cookienod_consent'])) {
-            return;
-        }
-
         ?>
         <script type="text/javascript">
         (function() {
+            'use strict';
+
+            // Get consent status from localStorage (same as cookienod.min.js)
+            function getConsentStatus() {
+                try {
+                    var prefs = localStorage.getItem('cs_cookie_prefs');
+                    return prefs ? JSON.parse(prefs) : {
+                        necessary: true,
+                        functional: false,
+                        analytics: false,
+                        marketing: false
+                    };
+                } catch (e) {
+                    return {
+                        necessary: true,
+                        functional: false,
+                        analytics: false,
+                        marketing: false
+                    };
+                }
+            }
+
+            // Check if consent is given for a category
+            function hasConsent(category) {
+                var consent = getConsentStatus();
+                return category === 'necessary' ? true : (consent[category] === true);
+            }
+
             // Update all form consent fields dynamically
             function updateFormConsentFields() {
-                var consentData = {
-                    marketing: window.cookienod?.consent?.marketing || false,
-                    analytics: window.cookienod?.consent?.analytics || false,
-                    functional: window.cookienod?.consent?.functional || false
-                };
+                var consentData = getConsentStatus();
 
                 // Update Gravity Forms
                 document.querySelectorAll('input[name="cookienod_consent_data"]').forEach(function(field) {
@@ -390,13 +464,107 @@ class CookieNod_Plugin_Compat {
                 document.querySelectorAll('input[name="cookienod_consent_data"]').forEach(function(field) {
                     field.value = JSON.stringify(consentData);
                 });
+
+                // Update CF7 consent summary display
+                document.querySelectorAll('.wpcf7-consent-summary[data-cookienod-summary="true"]').forEach(function(summary) {
+                    var listItems = summary.querySelectorAll('.cookienod-consent-list li');
+                    listItems.forEach(function(li) {
+                        var cat = li.getAttribute('data-category');
+                        var statusSpan = li.querySelector('.cookienod-status');
+                        if (statusSpan && cat) {
+                            var hasCon = (cat === 'necessary') ? true : (consentData[cat] === true);
+                            statusSpan.textContent = hasCon ? '✓' : '✗';
+                            statusSpan.style.color = hasCon ? '#28a745' : '#dc3545';
+                        }
+                    });
+                });
+            }
+
+            // Handle Elementor widget placeholder buttons
+            function handlePlaceholderButtons() {
+                document.querySelectorAll('.cookienod-give-consent, .cookienod-load-script, .cookienod-load-iframe').forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var category = this.getAttribute('data-category') || 'marketing';
+
+                        // Update consent in localStorage (triggers cookienod.min.js to reload)
+                        try {
+                            var prefs = getConsentStatus();
+                            prefs[category] = true;
+                            localStorage.setItem('cs_cookie_prefs', JSON.stringify(prefs));
+                            localStorage.setItem('cs_consent_given', 'true');
+
+                            // Dispatch event for cookienod.min.js to pick up
+                            window.dispatchEvent(new CustomEvent('cookiePreferencesChanged', {
+                                detail: prefs
+                            }));
+
+                            // Hide the placeholder and show content
+                            var placeholder = this.closest('.cookienod-widget-placeholder, .cookienod-blocked-script, .cookienod-blocked-iframe');
+                            if (placeholder) {
+                                placeholder.style.display = 'none';
+                            }
+
+                            // Reload scripts marked with data-category
+                            var scripts = document.querySelectorAll('script[type="text/cookienod"][data-category="' + category + '"]');
+                            scripts.forEach(function(script) {
+                                var encodedScript = script.getAttribute('data-script');
+                                if (encodedScript) {
+                                    try {
+                                        var decoded = atob(encodedScript);
+                                        var temp = document.createElement('div');
+                                        temp.innerHTML = decoded;
+                                        var newScript = temp.firstChild;
+                                        if (newScript) {
+                                            newScript.type = 'text/javascript';
+                                            document.head.appendChild(newScript);
+                                        }
+                                        script.remove();
+                                    } catch (err) {
+                                        console.error('CookieNod: Failed to load script', err);
+                                    }
+                                }
+                            });
+
+                            // Reload iframes
+                            var iframes = document.querySelectorAll('.cookienod-blocked-iframe[data-src]');
+                            iframes.forEach(function(iframeContainer) {
+                                var src = iframeContainer.getAttribute('data-src');
+                                if (src) {
+                                    iframeContainer.innerHTML = '<iframe src="' + src + '" style="width:100%;height:100%;border:none;"></iframe>';
+                                }
+                            });
+
+                            // Log consent if needed
+                            updateFormConsentFields();
+                        } catch (err) {
+                            console.error('CookieNod: Error giving consent', err);
+                        }
+                    });
+                });
             }
 
             // Listen for consent changes
             window.addEventListener('cookienod:consentChanged', updateFormConsentFields);
+            window.addEventListener('cookiePreferencesChanged', updateFormConsentFields);
 
-            // Initial update
-            updateFormConsentFields();
+            // Initialize on DOM ready and after Elementor renders
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    updateFormConsentFields();
+                    handlePlaceholderButtons();
+                });
+            } else {
+                updateFormConsentFields();
+                handlePlaceholderButtons();
+            }
+
+            // Elementor frontend render hook
+            if (window.elementorFrontend) {
+                window.elementorFrontend.hooks.addAction('frontend/element_ready/widget', function() {
+                    handlePlaceholderButtons();
+                });
+            }
         })();
         </script>
         <?php
@@ -408,7 +576,7 @@ class CookieNod_Plugin_Compat {
     public function ajax_check_consent() {
         check_ajax_referer('cookienod_wp_nonce', 'nonce');
 
-        $category = sanitize_text_field($_POST['category'] ?? '');
+        $category = sanitize_text_field(wp_unslash($_POST['category'] ?? ''));
 
         wp_send_json_success(array(
             'has_consent' => $this->has_consent($category),
@@ -418,16 +586,31 @@ class CookieNod_Plugin_Compat {
 
     /**
      * Check if user has given consent for a category
+     * Note: In 'auto' mode, consent is managed by cookienod.min.js via localStorage
      */
     private function has_consent($category) {
+        $block_mode = $this->options['block_mode'] ?? 'auto';
+
+        // In auto mode, consent is managed by cookienod.min.js via localStorage
+        // Server-side checks use cookies as fallback for logged-in users
+        if ($block_mode === 'auto') {
+            // Check for server-side consent cookie (set by cookienod.min.js after consent)
+            if (isset($_COOKIE['cookienod_consent'])) {
+                $consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
+                return !empty($consent[$category]);
+            }
+            // No consent given yet in auto mode
+            return false;
+        }
+
+        // In manual/silent modes, check cookie consent
         if (isset($_COOKIE['cookienod_consent'])) {
-            $consent = json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true);
+            $consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
             return !empty($consent[$category]);
         }
 
-        // If no consent cookie, check if blocking is enabled
-        $block_mode = $this->options['block_mode'] ?? 'auto';
-        return $block_mode !== 'auto';
+        // Default: no consent
+        return false;
     }
 
     /**
@@ -437,7 +620,8 @@ class CookieNod_Plugin_Compat {
         $consent = array();
 
         if (isset($_COOKIE['cookienod_consent'])) {
-            $consent = json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+            $consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
         }
 
         return array_merge(array(
@@ -464,6 +648,7 @@ class CookieNod_Plugin_Compat {
             esc_html($category_label),
             esc_html__('consent to display.', 'cookienod'),
             esc_attr($category),
+            /* translators: %s: Cookie category name (e.g., Marketing, Analytics) */
             esc_html(sprintf(__('Allow %s', 'cookienod'), $category_label))
         );
     }

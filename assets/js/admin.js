@@ -1,5 +1,10 @@
 /**
  * CookieNod Admin JavaScript
+ *
+ * This is the human-readable source file for the admin JavaScript.
+ * No build process is required - this file is used directly in production.
+ *
+ * @package Cookienod
  */
 (function($) {
     'use strict';
@@ -532,49 +537,49 @@
         function updateCssPreview() {
             var css = $('#custom-css-editor').val();
             var position = $('#banner_position').val() || 'bottom';
-            var baseTheme = $('.cookienod-custom-css').data('banner-theme') || $('#banner_theme').val() || 'light';
-            var bannerBaseCss = baseTheme === 'dark'
-                ? '#cs-consent-banner{left:0;right:0;background:#1f2937;border-top:1px solid #374151;padding:20px;box-shadow:0 -2px 10px rgba(0,0,0,0.25);color:#f9fafb;}#cs-consent-banner .cs-btn{padding:8px 16px;border:1px solid #4b5563;background:#111827;color:#f9fafb;cursor:pointer;border-radius:4px;}#cs-consent-banner .cs-btn-primary{background:#2563eb;color:#fff;border-color:#2563eb;}#cs-consent-banner .cs-btn-secondary{background:transparent;color:#f9fafb;border-color:#9ca3af;}#cs-consent-banner .cs-btn-tertiary{background:#374151;color:#f9fafb;border-color:#4b5563;}'
-                : '#cs-consent-banner{left:0;right:0;background:#fff;border-top:1px solid #ddd;padding:20px;box-shadow:0 -2px 10px rgba(0,0,0,0.1);color:#1d2327;}#cs-consent-banner .cs-btn{padding:8px 16px;border:1px solid #ccc;background:#f6f7f7;color:#1d2327;cursor:pointer;border-radius:4px;}#cs-consent-banner .cs-btn-primary{background:#2271b1;color:#fff;border-color:#2271b1;}#cs-consent-banner .cs-btn-secondary{background:transparent;}#cs-consent-banner .cs-btn-tertiary{background:#f0f0f1;}';
+            // Get banner theme from the read-only select on Custom CSS page
+            var bannerTheme = $('#current-banner-theme').val() || 'light';
 
-            // Build preview HTML with user's CSS
-            var previewHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-                '<style>' +
-                'body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f0f0;min-height:100vh;}' +
-                '.preview-container{background:#fff;min-height:500px;position:relative;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);overflow:hidden;}' +
-                '.preview-content{padding:40px;}' +
-                bannerBaseCss +
-                '#cs-consent-banner.position-top{position:absolute;top:0;}' +
-                '#cs-consent-banner.position-bottom{position:absolute;bottom:0;}' +
-                '#cs-consent-banner .cs-banner-title{margin:0 0 8px;font-size:20px;color:inherit;}' +
-                '#cs-consent-banner .cs-banner-description{margin:0;color:inherit;}' +
-                '#cs-consent-banner .cs-banner-actions{margin-top:15px;display:flex;gap:10px;flex-wrap:wrap;}' +
-                css +
-                '</style></head><body>' +
-                '<div class="preview-container">' +
-                '<div class="preview-content"><h1>Your Website</h1><p>This is a preview of how the consent banner will appear.</p></div>' +
-                '<div id="cs-consent-banner" class="position-' + position + '">' +
-                '<div class="cs-banner-content">' +
-                '<h3 class="cs-banner-title">Cookie Preferences</h3>' +
-                '<p class="cs-banner-description">We use cookies to enhance your experience.</p>' +
-                '<div class="cs-banner-actions">' +
-                '<button class="cs-btn cs-btn-secondary">Reject</button>' +
-                '<button class="cs-btn cs-btn-tertiary">Customize</button>' +
-                '<button class="cs-btn cs-btn-primary">Accept All</button>' +
-                '</div></div></div></div></body></html>';
-
-            var blob = new Blob([previewHtml], { type: 'text/html' });
-            var url = URL.createObjectURL(blob);
-
+            // Show loading state
             var $frame = $('#css-preview-frame');
-            $frame.attr('src', url);
+            $frame.css('opacity', '0.5');
 
-            // Clean up previous blob URL after load
-            $frame.off('load').on('load', function() {
-                if ($frame.data('old-src')) {
-                    URL.revokeObjectURL($frame.data('old-src'));
+            // Call AJAX to generate preview HTML from server
+            $.ajax({
+                url: cookienodWp.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'cookienod_generate_preview',
+                    nonce: cookienodWp.nonce,
+                    custom_css: css,
+                    position: position,
+                    banner_theme: bannerTheme
+                },
+                success: function(response) {
+                    $frame.css('opacity', '1');
+
+                    if (response.success && response.data.preview_html) {
+                        // Create blob from server-generated HTML
+                        var blob = new Blob([response.data.preview_html], { type: 'text/html' });
+                        var url = URL.createObjectURL(blob);
+
+                        $frame.attr('src', url);
+
+                        // Clean up previous blob URL after load
+                        $frame.off('load').on('load', function() {
+                            if ($frame.data('old-src')) {
+                                URL.revokeObjectURL($frame.data('old-src'));
+                            }
+                            $frame.data('old-src', url);
+                        });
+                    } else {
+                        console.error('Preview generation failed:', response);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $frame.css('opacity', '1');
+                    console.error('Preview AJAX error:', error);
                 }
-                $frame.data('old-src', url);
             });
         }
 

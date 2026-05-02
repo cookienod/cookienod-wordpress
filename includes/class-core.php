@@ -83,6 +83,7 @@ class CookieNod_Core {
             add_action('wp_ajax_cookienod_load_theme', array($this, 'ajax_load_theme'));
             add_action('wp_ajax_cookienod_validate_css', array($this, 'ajax_validate_css'));
             add_action('wp_ajax_cookienod_preview_css', array($this, 'ajax_preview_css'));
+            add_action('wp_ajax_cookienod_generate_preview', array($this, 'ajax_generate_preview'));
         }
 
         // Consent logging (frontend + backend)
@@ -309,12 +310,23 @@ class CookieNod_Core {
         }
 
         // Parse JSON preferences - use wp_unslash to preserve JSON
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data will be decoded and sanitized
         $preferences_raw = isset($_POST['preferences']) ? wp_unslash($_POST['preferences']) : '{}';
         $preferences = json_decode($preferences_raw, true);
 
         if (!is_array($preferences)) {
             $preferences = array();
         }
+
+        // Sanitize preferences - only allow boolean values for known categories
+        $allowed_categories = array('necessary', 'functional', 'analytics', 'marketing');
+        $sanitized_preferences = array();
+        foreach ($allowed_categories as $category) {
+            if (isset($preferences[$category])) {
+                $sanitized_preferences[$category] = rest_sanitize_boolean($preferences[$category]);
+            }
+        }
+        $preferences = $sanitized_preferences;
 
         // Don't log empty preferences - banner hasn't set them yet
         if (empty($preferences)) {
@@ -323,7 +335,8 @@ class CookieNod_Core {
         }
 
         // Check if already logged these exact preferences (prevent duplicates)
-        $session_id = isset($_POST['session_id']) ? sanitize_text_field($_POST['session_id']) : '';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Session ID sanitized
+        $session_id = isset($_POST['session_id']) ? sanitize_text_field(wp_unslash($_POST['session_id'])) : '';
         $client_ip = $this->get_client_ip();
         $prefs_hash = md5(json_encode($preferences));
         $logged_key = 'cookienod_logged_' . md5($session_id . $client_ip) . '_' . $prefs_hash;
@@ -351,7 +364,8 @@ class CookieNod_Core {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
-                $ip = sanitize_text_field($_SERVER[$key]);
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- IP addresses sanitized after unslash
+                $ip = sanitize_text_field(wp_unslash($_SERVER[$key]));
                 if (filter_var($ip, FILTER_VALIDATE_IP)) {
                     return $ip;
                 }
@@ -370,14 +384,17 @@ class CookieNod_Core {
             wp_send_json_error('Permission denied');
         }
 
-        $format = isset($_GET['format']) ? sanitize_text_field($_GET['format']) : 'csv';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Format sanitized
+        $format = isset($_GET['format']) ? sanitize_text_field(wp_unslash($_GET['format'])) : 'csv';
 
         global $wpdb;
         $table = $wpdb->prefix . 'cookienod_consent_log';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
         $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC", ARRAY_A);
 
         if ($format === 'csv') {
             // Generate CSV content
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- In-memory stream for CSV export
             $output = fopen('php://temp', 'r+');
             fputcsv($output, array('ID', 'User ID', 'IP Address', 'Preferences', 'Created At'));
 
@@ -393,11 +410,12 @@ class CookieNod_Core {
 
             rewind($output);
             $csv_content = stream_get_contents($output);
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- In-memory stream for CSV export
             fclose($output);
 
             wp_send_json_success(array(
                 'content' => $csv_content,
-                'filename' => 'consent-log-' . date('Y-m-d') . '.csv'
+                'filename' => 'consent-log-' . gmdate('Y-m-d') . '.csv'
             ));
         } else {
             wp_send_json_error('Unsupported format');
@@ -416,6 +434,7 @@ class CookieNod_Core {
 
         global $wpdb;
         $table = $wpdb->prefix . 'cookienod_consent_log';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
         $wpdb->query("TRUNCATE TABLE $table");
 
         wp_send_json_success(array('cleared' => true));
@@ -454,17 +473,26 @@ class CookieNod_Core {
     }
 
     /**
+     * AJAX generate preview HTML
+     */
+    public function ajax_generate_preview() {
+        $css_editor = new CookieNod_Custom_CSS();
+        $css_editor->ajax_generate_preview();
+    }
+
+    /**
      * AJAX detect cookies from frontend
      */
     public function ajax_detect_cookies() {
         check_ajax_referer('cookienod_wp_nonce', 'nonce');
 
         // Decode JSON cookies data - use wp_unslash, not sanitize_text_field (which corrupts JSON)
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON data will be decoded
         $cookies_raw = isset($_POST['cookies']) ? wp_unslash($_POST['cookies']) : '[]';
         $cookies = json_decode($cookies_raw, true);
 
         if (!is_array($cookies)) {
-            wp_send_json_success(array('saved' => 0, 'error' => 'Invalid JSON', 'raw' => substr($cookies_raw, 0, 100)));
+            wp_send_json_success(array('saved' => 0, 'error' => 'Invalid JSON', 'raw' => sanitize_text_field(substr($cookies_raw, 0, 100))));
             return;
         }
 

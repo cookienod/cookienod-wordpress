@@ -1,0 +1,67 @@
+/**
+ * CookieNod Policy Generator Styles
+ *
+ * @package Cookienod
+ */
+
+.policy-templates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.policy-template {
+    border: 2px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.policy-template:hover,
+.policy-template.selected {
+    border-color: #2271b1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.policy-template.selected {
+    background: #f0f6fc;
+}
+
+.template-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.template-description {
+    color: #646970;
+    font-size: 0.95em;
+}
+
+.policy-preview-box {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.cookie-count {
+    font-size: 2em;
+    font-weight: 600;
+    color: #2271b1;
+    margin: 10px 0;
+}
+
+.cookie-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.cookie-list li {
+    margin: 5px 0;
+}

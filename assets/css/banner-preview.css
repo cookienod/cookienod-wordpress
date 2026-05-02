@@ -1,0 +1,133 @@
+/**
+ * CookieNod Banner Preview Styles
+ * Used for the CSS editor live preview iframe
+ *
+ * @package Cookienod
+ */
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f0f0f0;
+    min-height: 100vh;
+}
+
+.preview-container {
+    background: #fff;
+    min-height: 600px;
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.preview-content {
+    padding: 40px;
+}
+
+/* Banner base styles - light theme */
+#cs-consent-banner.light {
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    color: #1d2327;
+}
+
+/* Banner base styles - dark theme */
+#cs-consent-banner.dark {
+    left: 0;
+    right: 0;
+    background: #1f2937;
+    border-top: 1px solid #374151;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+    color: #f9fafb;
+}
+
+/* Position styles */
+#cs-consent-banner.position-top {
+    position: absolute;
+    top: 0;
+}
+
+#cs-consent-banner.position-bottom {
+    position: absolute;
+    bottom: 0;
+}
+
+/* Content styles */
+#cs-consent-banner .cs-banner-title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: inherit;
+}
+
+#cs-consent-banner .cs-banner-description {
+    margin: 0;
+    color: inherit;
+}
+
+#cs-consent-banner .cs-banner-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Button styles - light theme */
+#cs-consent-banner.light .cs-btn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background: #f6f7f7;
+    color: #1d2327;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#cs-consent-banner.light .cs-btn-primary {
+    background: #2271b1;
+    color: #fff;
+    border-color: #2271b1;
+}
+
+#cs-consent-banner.light .cs-btn-secondary {
+    background: transparent;
+    color: inherit;
+    border-color: #ccc;
+}
+
+#cs-consent-banner.light .cs-btn-tertiary {
+    background: #f0f0f1;
+}
+
+/* Button styles - dark theme */
+#cs-consent-banner.dark .cs-btn {
+    padding: 8px 16px;
+    border: 1px solid #4b5563;
+    background: #111827;
+    color: #f9fafb;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#cs-consent-banner.dark .cs-btn-primary {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+#cs-consent-banner.dark .cs-btn-secondary {
+    background: transparent;
+    color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+#cs-consent-banner.dark .cs-btn-tertiary {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+}

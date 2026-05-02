@@ -1,0 +1,125 @@
+/**
+ * CookieNod Custom CSS Editor Styles
+ *
+ * @package Cookienod
+ */
+
+.cookienod-custom-css {
+    --cookienod-surface: #ffffff;
+    --cookienod-surface-muted: #f0f0f1;
+    --cookienod-border: #c3c4c7;
+    --cookienod-text: #1d2327;
+    --cookienod-text-muted: #646970;
+    --cookienod-success-bg: #d4edda;
+    --cookienod-success-text: #155724;
+    --cookienod-error-bg: #f8d7da;
+    --cookienod-error-text: #721c24;
+}
+
+body.admin-color-midnight .cookienod-custom-css,
+body.admin-color-ectoplasm .cookienod-custom-css {
+    --cookienod-surface: #23282d;
+    --cookienod-surface-muted: #2c3338;
+    --cookienod-border: #3c434a;
+    --cookienod-text: #f0f0f1;
+    --cookienod-text-muted: #c3c4c7;
+    --cookienod-success-bg: #153b2a;
+    --cookienod-success-text: #9ee2b8;
+    --cookienod-error-bg: #4a1f27;
+    --cookienod-error-text: #ffb3bf;
+}
+
+.cookienod-css-editor {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.cookienod-custom-css .cookienod-card {
+    background: var(--cookienod-surface);
+    border-color: var(--cookienod-border);
+    color: var(--cookienod-text);
+}
+
+.cookienod-custom-css .cookienod-card h2,
+.cookienod-custom-css .cookienod-card h3,
+.cookienod-custom-css .cookienod-card p,
+.cookienod-custom-css .cookienod-card .description,
+.cookienod-custom-css label {
+    color: var(--cookienod-text);
+}
+
+.cookienod-custom-css .cookienod-card hr {
+    border-color: var(--cookienod-border);
+}
+
+.cookienod-custom-css select,
+.cookienod-custom-css textarea {
+    background: var(--cookienod-surface);
+    border-color: var(--cookienod-border);
+    color: var(--cookienod-text);
+}
+
+.cookienod-custom-css select::placeholder,
+.cookienod-custom-css textarea::placeholder,
+.cookienod-custom-css .description {
+    color: var(--cookienod-text-muted);
+}
+
+.cookienod-css-sidebar .cookienod-card {
+    margin-bottom: 20px;
+}
+
+.safe-properties,
+.safe-selectors {
+    background: var(--cookienod-surface-muted);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    word-break: break-word;
+    color: var(--cookienod-text);
+}
+
+.css-editor-container {
+    position: relative;
+}
+
+#custom-css-editor {
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#css-preview-frame {
+    width: 100%;
+    height: 600px;
+    border: 1px solid var(--cookienod-border);
+    border-radius: 4px;
+    background: var(--cookienod-surface);
+}
+
+#css-validation-status {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+#css-validation-status.success {
+    display: block;
+    background: var(--cookienod-success-bg);
+    color: var(--cookienod-success-text);
+}
+
+#css-validation-status.error {
+    display: block;
+    background: var(--cookienod-error-bg);
+    color: var(--cookienod-error-text);
+}
+
+@media screen and (max-width: 782px) {
+    .cookienod-css-editor {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,172 @@
+/**
+ * CookieNod Script Blocker Placeholder Styles
+ *
+ * @package Cookienod
+ */
+
+.cookienod-blocked-script,
+.cookienod-blocked-iframe {
+    margin: 10px 0;
+    padding: 20px;
+    background: #f5f5f5;
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.cookienod-placeholder {
+    color: #666;
+}
+
+.cookienod-placeholder-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.cookienod-placeholder p {
+    margin: 0 0 15px;
+    font-size: 14px;
+}
+
+.cookienod-load-script,
+.cookienod-load-iframe {
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.cookienod-load-script:hover,
+.cookienod-load-iframe:hover {
+    background: #005a87;
+}
+
+.cookienod-iframe-placeholder {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Loading state */
+.cookienod-blocked-script.loading .cookienod-placeholder,
+.cookienod-blocked-iframe.loading .cookienod-placeholder,
+.cookienod-blocked-iframe.loading .cookienod-iframe-placeholder {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Elementor Widget Consent Classes (Auto Mode)
+   These work with cookienod.min.js which manages consent via localStorage */
+
+/* Default: hide widgets that require consent until consent is given */
+.elementor-widget.cookienod-require-consent-yes {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Show widgets when consent is given for their category */
+.elementor-widget.cookienod-require-consent-yes.cookienod-consent-given-marketing,
+.elementor-widget.cookienod-require-consent-yes.cookienod-consent-given-analytics,
+.elementor-widget.cookienod-require-consent-yes.cookienod-consent-given-functional {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Widget placeholder styles for Elementor */
+.cookienod-widget-placeholder {
+    padding: 30px 20px;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.cookienod-widget-placeholder p {
+    margin: 0 0 15px;
+    color: #495057;
+    font-size: 14px;
+}
+
+.cookienod-give-consent {
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.cookienod-give-consent:hover {
+    background: #005a87;
+}
+
+/* Elementor popup consent hiding */
+.elementor-popup-modal.cookienod-requires-consent {
+    display: none !important;
+}
+
+/* Contact Form 7 Consent Summary */
+.wpcf7-consent-summary {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wpcf7-consent-summary p {
+    margin: 0 0 10px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.wpcf7-consent-summary ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wpcf7-consent-summary li {
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.wpcf7-consent-summary li:last-child {
+    border-bottom: none;
+}
+
+.cookienod-consent-list li {
+    display: flex;
+    justify-content: space-between;
+}
+
+.cookienod-status {
+    font-weight: 600;
+}
+
+.cookienod-status {
+    color: #dc3545; /* Default: red for no consent */
+}
+
+/* Gravity Forms Consent Notice */
+.gform_consent_notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin: 15px 0;
+    font-size: 14px;
+}

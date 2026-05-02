@@ -109,7 +109,8 @@ class CookieNod_Database {
 
         foreach ($tables as $table) {
             $table_name = $wpdb->prefix . $table;
-            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for checking table existence
+            if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table_name)) !== $table_name) {
                 $missing_tables[] = $table;
             }
         }
@@ -118,8 +119,8 @@ class CookieNod_Database {
             $repair_url = wp_nonce_url(admin_url('admin.php?cookienod_repair_tables=1'), 'cookienod_repair_tables');
             ?>
             <div class="notice notice-error">
-                <p><strong>CookieNod:</strong> <?php _e('The following database tables are missing:', 'cookienod'); ?> <code><?php echo esc_html(implode(', ', $missing_tables)); ?></code></p>
-                <p><a href="<?php echo esc_url($repair_url); ?>" class="button button-primary"><?php _e('Create Missing Tables', 'cookienod'); ?></a></p>
+                <p><strong>CookieNod:</strong> <?php esc_html_e('The following database tables are missing:', 'cookienod'); ?> <code><?php echo esc_html(implode(', ', $missing_tables)); ?></code></p>
+                <p><a href="<?php echo esc_url($repair_url); ?>" class="button button-primary"><?php esc_html_e('Create Missing Tables', 'cookienod'); ?></a></p>
             </div>
             <?php
         }
@@ -137,7 +138,8 @@ class CookieNod_Database {
             wp_die(esc_html__('Unauthorized', 'cookienod'));
         }
 
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'cookienod_repair_tables')) {
+        $nonce_value = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
+        if (!wp_verify_nonce($nonce_value, 'cookienod_repair_tables')) {
             wp_die(esc_html__('Invalid nonce', 'cookienod'));
         }
 
@@ -151,12 +153,13 @@ class CookieNod_Database {
      * Show success notice when tables are created
      */
     public function show_created_notice() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- No action performed, just showing notice
         if (!isset($_GET['cookienod_tables_created'])) {
             return;
         }
         ?>
         <div class="notice notice-success is-dismissible">
-            <p><strong>CookieNod:</strong> <?php _e('Database tables created successfully.', 'cookienod'); ?></p>
+            <p><strong>CookieNod:</strong> <?php esc_html_e('Database tables created successfully.', 'cookienod'); ?></p>
         </div>
         <?php
     }

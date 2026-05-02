@@ -24,6 +24,9 @@
     border-radius: 4px;
     padding: 20px;
     box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-sizing: border-box;
+    width: 100%;
+    float: left;
 }
 
 .cookienod-card h2 {
@@ -245,6 +248,12 @@
 
 .cookienod-consent-log .actions {
     margin-bottom: 20px;
+    float: left;
+    width: 100%;
+    clear: both;
+}
+.cookienod-tab-content {
+	padding: 30px 0px;
 }
 
 /* Responsive */

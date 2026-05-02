@@ -1,70 +1,116 @@
-# CookieNod WordPress Plugin - Complete User Guide
+# CookieNod - Cookie Consent & Scanner
 
-<p align="center">
-  <img src="https://www.cookienod.com/logo-white.svg" alt="CookieNod Logo" width="120">
-  <br>
-  <strong>GDPR & CCPA Compliant Cookie Consent Management</strong>
-  <br>
-  <em>Automated Scanning • Intelligent Blocking • Beautiful Banners</em>
-</p>
+**GDPR/CCPA Compliant Cookie Consent Management**
+
+*Automated Scanning · Intelligent Blocking · Beautiful Banners*
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
+1. [Description](#description)
 2. [Installation](#installation)
-3. [Quick Start](#quick-start)
-4. [Dashboard Overview](#dashboard-overview)
-5. [Settings Explained](#settings-explained)
-6. [Cookie Manager](#cookie-manager)
-7. [Consent Log](#consent-log)
-8. [Advanced Features](#advanced-features)
-9. [Troubleshooting](#troubleshooting)
-10. [FAQ](#faq)
+3. [Frequently Asked Questions](#frequently-asked-questions)
+4. [External Services](#external-services)
+5. [Privacy Policy](#privacy-policy)
+6. [Source Code and Build Process](#source-code-and-build-process)
+7. [Credits](#credits)
 
 ---
 
-## Overview
+## Description
 
-CookieNod is a powerful cookie consent management solution that combines **server-side scanning** with **client-side intelligent blocking** to ensure your WordPress site complies with GDPR, CCPA, and other privacy regulations.
-
-### How It Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    YOUR WORDPRESS SITE                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│   CookieNod uses two layers of protection:                   │
-│                                                              │
-│   ┌─────────────────┐      ┌──────────────────┐           │
-│   │  Server Layer   │      │  Browser Layer   │           │
-│   │                 │      │                  │           │
-│   │ • Blocks Google │      │ • Intercepts     │           │
-│   │   Analytics     │      │   cookie setting │           │
-│   │ • Blocks FB     │      │ • Shows consent  │           │
-│   │   Pixel         │      │   banner         │           │
-│   │ • Prevents load │      │ • Respects user  │           │
-│   │                 │      │   choices        │           │
-│   └─────────────────┘      └──────────────────┘           │
-│                                                              │
-│   Plus: Automatic cookie scanning keeps your                 │
-│   cookie list up-to-date                                     │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+CookieNod is a powerful cookie consent and management solution for WordPress, designed to help you comply with GDPR, CCPA, LGPD, and 20+ other privacy regulations worldwide.
 
 ### Key Features
 
-| Feature | Description |
-|---------|-------------|
-| 🛡️ **Auto Blocking** | Blocks cookies & scripts before page load |
-| 🔍 **Server Scanning** | Crawls your site to discover all cookies |
-| 📊 **Consent Log** | Records all user consent decisions |
-| 🎨 **Customizable** | Match your brand colors & style |
-| 📱 **Responsive** | Works perfectly on mobile devices |
-| ⚡ **Fast** | Minimal impact on page speed |
+- **Multi-Region Compliance**: Supports GDPR (EU), CCPA (California), LGPD (Brazil), POPIA (South Africa), PIPEDA (Canada), and 15+ other regulations
+- **JavaScript Cookie Scanning**: Real browser scanner detects and categorizes cookies as visitors browse
+- **Google Consent Mode v2**: Full integration with Google Analytics 4 and Google Tag Manager
+- **Four Blocking Modes**:
+  - **Auto** (Recommended) - JavaScript handles cookie blocking, clean UI
+  - **Manual Consent Attributes** - Use data-consent attributes on scripts for precise control
+  - **Silent Blocking** - Server-side blocking without visible placeholders
+  - **Blocking with Placeholders** - Server-side with visible placeholder boxes
+- **Script Exclusions** - Exclude specific scripts using wildcards (`*google-analytics.com*`)
+- **Data-Consent Attributes** - Mark scripts with `data-consent="analytics,marketing"` for multi-category control
+- **Customizable Consent Banner**: Choose between banner (top/bottom) or modal display with light/dark themes
+- **Custom CSS Editor**: Built-in CSS editor with live preview and theme templates
+- **A/B Testing**: Test different banner designs and automatically optimize conversion rates
+- **Consent Logging**: Track user consent choices for compliance auditing
+- **Cookie Policy Generator**: Automatically generate and update cookie policy pages
+- **WooCommerce Integration**: Add consent checkboxes to checkout, block tracking until consent
+- **External Service Integration**: Connects to the CookieNod service for key validation and site configuration
+
+### Cookie Categories
+
+- **Necessary**: Essential cookies that cannot be disabled
+- **Functional**: Preferences, language, and personalization cookies
+- **Analytics**: Google Analytics, Matomo, Hotjar, and other analytics tools
+- **Marketing**: Facebook Pixel, Google Ads, LinkedIn, and advertising cookies
+
+### Blocking Modes Explained
+
+**Auto (Recommended)**
+- Shows the consent banner
+- JavaScript SDK handles cookie blocking
+- No visible placeholders or layout changes
+- Works with all caching plugins
+- Best for most websites
+
+**Silent Blocking**
+- Server blocks scripts server-side
+- No visible placeholders (hidden in HTML comments)
+- JavaScript loads scripts after user gives consent
+- Best balance of protection and UX
+
+**Blocking with Placeholders (Legacy)**
+- Server blocks scripts
+- Shows visible placeholder boxes with unlock buttons
+- Use only if you need visible indicators
+
+### A/B Testing
+
+Optimize your consent banner with built-in A/B testing:
+- Create multiple banner variants
+- Split traffic between designs
+- Track accept/reject rates
+- Automatic winner selection
+- Improve consent rates over time
+
+### WooCommerce Features
+
+- Marketing consent checkbox at checkout
+- Analytics consent option
+- Block cart/tracking cookies until functional consent
+- Store consent with order data
+- "Do Not Sell My Personal Information" link for CCPA
+
+### Supported Regulations
+
+- GDPR (European Union, EEA, UK)
+- CCPA/CPRA (California, USA)
+- LGPD (Brazil)
+- POPIA (South Africa)
+- PIPEDA (Canada)
+- Australia Privacy Act
+- Nigeria NDPR
+- Singapore PDPA
+- Thailand PDPA
+- Japan APPI
+- South Korea PIPA
+- Indonesia PDP Law
+- Vietnam PDPD
+- UAE PDPL
+- Qatar PDPL
+- Saudi Arabia PDPL
+- Egypt PDPL
+- Kenya DPA
+- Ghana DPA
+- Turkey KVKK
+- Russia FZ-152
+- China PIPL
+- India DPDP Act
 
 ---
 
@@ -72,569 +118,240 @@ CookieNod is a powerful cookie consent management solution that combines **serve
 
 ### Method 1: WordPress Admin (Recommended)
 
-1. Download `cookienod.zip` from your [CookieNod Dashboard](https://cookienod.com/dashboard)
-2. Go to **WordPress Admin → Plugins → Add New → Upload Plugin**
-3. Select `cookienod.zip` and click **Install Now**
+1. Download the plugin ZIP file
+2. Go to **WordPress Admin > Plugins > Add New > Upload Plugin**
+3. Choose the downloaded ZIP file and click **Install Now**
 4. Click **Activate Plugin**
 
-### Method 2: FTP Upload
+### Method 2: FTP
 
-1. Extract `cookienod.zip` to your computer
+1. Extract the plugin ZIP file
 2. Upload the `cookienod` folder to `/wp-content/plugins/`
-3. Go to **WordPress Admin → Plugins** and activate **CookieNod**
+3. Go to **WordPress Admin > Plugins** and activate **CookieNod**
 
-### Method 3: Git Clone (Developers)
+### Configuration
 
-```bash
-cd /wp-content/plugins/
-git clone https://github.com/cookienod/wp-plugin.git cookienod
-```
-
----
-
-## Quick Start
-
-### Step 1: Get Your License Key
-
-1. Log in to [CookieNod Dashboard](https://cookienod.com/dashboard)
-2. Go to **License Keys** section
-3. Copy your license key (starts with `CB-`)
-
-### Step 2: Configure the Plugin
-
-1. In WordPress Admin, go to **CookieNod → Settings**
-2. Paste your license key in the **API Key** field
-3. Click **Save Changes**
-4. Click **Verify API Key** to confirm it's working
-
-### Step 3: Customize (Optional)
-
-1. Choose your **Banner Position** (bottom, top, or center)
-2. Select **Blocking Mode** (auto, manual-consent, silent, or manual with placeholders)
-3. Pick a **Theme** (light or dark)
-4. Save changes
-
-### Step 4: Test Your Site
-
-Visit your site in an incognito window. You should see the cookie consent banner!
+1. Get your API Key from [CookieNod Dashboard](https://cookienod.com/dashboard)
+2. Go to **CookieNod > Settings** in WordPress
+3. Paste your API Key and click **Verify**
+4. Choose your preferred **Blocking Mode**
+5. Save changes
 
 ---
 
-## Dashboard Overview
+## Frequently Asked Questions
 
-After activation, you'll see a new **CookieNod** menu in your WordPress admin sidebar.
+### Do I need an API key?
+
+Yes, an API key is required. You can get an API key at https://cookienod.com.
+
+### Does this work with Google Tag Manager?
+
+Yes! CookieNod fully supports Google Consent Mode v2. Enable it in settings to integrate with GTM and Google Analytics 4.
+
+### Can I customize the banner appearance?
+
+Yes, you can choose between light/dark themes and banner position (top, bottom, or center modal). Advanced CSS customization is also supported.
+
+### What are the blocking modes?
+
+- **Banner Only** - JavaScript handles all cookie blocking (recommended)
+- **Manual Consent Attributes** - Use data-consent attributes on script tags for precise control
+- **Silent Blocking** - Server blocks scripts without visible placeholders, JS loads them after consent
+- **Blocking with Placeholders** - Server blocks with visible placeholder boxes (legacy mode)
+
+### Does this block cookies automatically?
+
+In "Auto" mode, the plugin intercepts and blocks third-party cookies and scripts until the user gives consent. In "Manual" mode, it only displays the consent banner.
+
+### How do I use data-consent attributes?
+
+Add the `data-consent` attribute to your script tags:
+
+```html
+<!-- Single category -->
+<script src="analytics.js" data-consent="analytics"></script>
+
+<!-- Multiple categories (loads if ANY consent given) -->
+<script src="tracking.js" data-consent="analytics,marketing"></script>
+
+<!-- Always loads -->
+<script src="jquery.js" data-consent="necessary"></script>
+```
+
+Valid categories: `necessary`, `functional`, `analytics`, `marketing`
+
+### How do I exclude scripts?
+
+In Settings > Excluded Scripts, enter patterns (one per line):
 
 ```
-┌─────────────────────────────────────┐
-│  🍪 CookieNod                      │
-├─────────────────────────────────────┤
-│  Dashboard     → Overview & stats    │
-│  Settings      → Configure plugin    │
-│  Cookie Manager → View & manage      │
-│  Consent Log   → View user choices   │
-│  A/B Testing   → Optimize banners    │
-│  Customize CSS → Style adjustments   │
-│  Cookie Policy → Generate policy     │
-└─────────────────────────────────────┘
+*google-analytics.com*
+*googletagmanager.com*
+*facebook.com/tr
+*hotjar.com
+analytics.js
 ```
 
-### Dashboard Page
+Use `*` as wildcards to match any part of the script URL.
 
-The main dashboard shows:
-- **License Status**: Active/Inactive
-- **Plan Details**: Your current subscription tier
-- **Recent Activity**: Latest cookie discoveries
-- **Quick Actions**: Links to common settings
+### Is consent logging available?
+
+Yes, all user consent choices are logged in your WordPress database for compliance auditing. You can export these logs as CSV.
+
+### Can I use this without the external service?
+
+No. The plugin requires the CookieNod service for API key validation and site configuration.
+
+### Does this work with Elementor?
+
+Yes! CookieNod is fully compatible with Elementor and Elementor Pro. You can:
+- Add consent controls to any Elementor widget
+- Block widgets until user gives consent (marketing/analytics)
+- Integrate consent tracking with Elementor forms
+- Show/hide popups based on consent status
+
+### Does this work with Gravity Forms?
+
+Yes! CookieNod integrates with Gravity Forms to:
+- Track consent status with form submissions
+- Require specific consent categories before form submission
+- Log consent data with entries for compliance
+
+### Does this work with Contact Form 7?
+
+Yes! CookieNod works with Contact Form 7 via:
+- A special `[cookienod_consent]` form tag
+- Automatic consent data attachment to submissions
+- Consent summary display option
+
+### The banner is not showing, what should I do?
+
+1. Verify your API key is entered correctly
+2. Check that your site URL in CookieNod matches your WordPress URL
+3. Clear any WordPress cache
+4. Check browser console for errors
+
+### Will it work with my caching plugin?
+
+Yes! The "Banner Only" mode works seamlessly with caching plugins like WP Rocket, W3 Total Cache, and LiteSpeed Cache.
 
 ---
 
-## Settings Explained
+## External Services
 
-### General Settings
+This plugin connects to the CookieNod external service to provide cookie consent management functionality. An API key is required to use these services.
 
-#### API Key
-```
-┌──────────────────────────────────────────────────┐
-│  🔑 API Key                                        │
-│  ┌────────────────────────────────────────────┐  │
-│  │ CB-AEwsWPRD6I9BWOwi5VoCwt8xdpxqovYrnlRVE_ │  │
-│  │ dFYuw                                      │  │
-│  └────────────────────────────────────────────┘  │
-│                                    [Verify Key]  │
-└──────────────────────────────────────────────────┘
-```
+### CookieNod API and Frontend Script
 
-Your unique identifier that connects your WordPress site to CookieNod services. 
+The plugin requires the CookieNod service (provided by CookieNod Team) to function. This service is used for:
 
-- **Where to find**: CookieNod Dashboard → License Keys
-- **Format**: Starts with `CB-` followed by 64 characters
-- **Security**: Keep this secret - it controls access to your data
+- **API Key Validation**: Verifying your license key is valid
+- **Site Configuration**: Obtaining your site's consent banner settings
+- **Frontend Banner Rendering**: Loading the JavaScript that displays and manages the consent banner
 
-**Status Indicators:**
-- ✅ **Verified** - Connected successfully
-- ❌ **Invalid** - Check the key is copied correctly
-- ⚠️ **Domain Mismatch** - Key is for a different domain
+### What data is sent
 
----
+- Your **API Key** - sent when verifying the key and loading site configuration
+- Your **Site URL** - sent to validate the API key is being used on the correct domain
+- **Current page URL** - sent when loading the frontend script to render the banner
 
-#### Cookie Blocking Mode
+### When data is sent
 
-```
-┌──────────────────────────────────────────────────┐
-│  🛡️ Cookie Blocking Mode                           │
-│                                                  │
-│  ○ Auto (recommended)                            │
-│  ○ Manual Consent Attributes                     │
-│  ○ Silent Blocking                               │
-│  ○ Blocking with Placeholders                    │
-│                                                  │
-│  ℹ️ Choose how cookies and scripts are blocked   │
-│     based on user consent preferences.           │
-└──────────────────────────────────────────────────┘
-```
+- API key validation: When you enter/verify your API key in settings
+- Site configuration: When the plugin loads your banner settings
+- Frontend script: On every page load for visitors (only if a valid API key is configured)
 
-**Auto (Recommended)**
-- JavaScript banner handles all cookie blocking
-- Blocks Google Analytics, Facebook Pixel, and other trackers
-- Intercepts cookies before they're set
-- Only allows "Necessary" cookies until consent
-- Best for GDPR compliance
+### Service provider
 
-**Manual Consent Attributes**
-- Use `data-consent` attributes on script tags for precise control
-- Example: `<script data-consent="analytics" src="ga.js">`
-- Supports multiple categories: `data-consent="analytics,marketing"`
-- Good for custom implementations requiring fine-grained control
+CookieNod Team
 
-**Silent Blocking**
-- Server blocks scripts without visible placeholders
-- Cookies are blocked in the background
-- No visible indication of blocked content
-- Clean look but less transparent to users
+- **Terms of Service**: https://cookienod.com/terms
+- **Privacy Policy**: https://cookienod.com/privacy
 
-**Blocking with Placeholders (Legacy)**
-- Server blocks with visible placeholder boxes
-- Shows placeholder where blocked scripts would appear
-- Users see what content is being withheld
-- Higher transparency but more visually intrusive
+### Google Services (Optional)
+
+If you enable Google Consent Mode v2, the plugin integrates with Google Analytics and Google Tag Manager. This is optional and disabled by default.
+
+- **Google Analytics Terms**: https://marketingplatform.google.com/about/analytics/terms/
+- **Google Privacy Policy**: https://policies.google.com/privacy
 
 ---
 
-#### Banner Position
+## Privacy Policy
 
-```
-┌──────────────────────────────────────────────────┐
-│  📍 Banner Position                                │
-│                                                  │
-│  ○ Bottom Banner                                 │
-│  ○ Top Banner                                    │
-│  ● Center Modal                                  │
-│                                                  │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│   ┌──────────────────────────────────────────┐   │
-│   │                                          │   │
-│   │        Cookie Preferences               │   │
-│   │                                          │   │
-│   │   We use cookies to enhance...         │   │
-│   │                                          │   │
-│   │   [Reject] [Customize] [Accept All]   │   │
-│   │                                          │   │
-│   └──────────────────────────────────────────┘   │
-│              ↑ Center Modal Preview              │
-└──────────────────────────────────────────────────┘
-```
+CookieNod processes the following data:
 
-**Bottom Banner**
-- Standard footer banner
-- Least intrusive
-- Most common choice
+- **API Key**: Stored in WordPress and sent to the CookieNod API for key validation
+- **Site URL**: Sent to the CookieNod API to validate the key for the current site
+- **Cookie Data**: Cookie names and categories detected on your site and stored in your WordPress database
+- **Consent Data**: User consent preferences stored locally in the visitor browser and, if consent logging is enabled, logged in your WordPress database
+- **IP Addresses**: Logged in your WordPress database for consent audit records when consent logging is enabled
 
-**Top Banner**
-- Header notification style
-- Visible but can push content down
-
-**Center Modal**
-- Blocks interaction until decision
-- Highest visibility
-- Best for strict compliance requirements
+The plugin loads a remote JavaScript file from `https://cookienod.com/cookienod.min.js` after a valid API key is verified. API key validation and site configuration requests are sent to `https://api.cookienod.com`. Consent logging and cookie detection requests are sent to your own site through WordPress `admin-ajax.php`.
 
 ---
 
-#### Banner Theme
+## Source Code and Build Process
 
-```
-┌──────────────────────────────────────────────────┐
-│  🎨 Banner Theme                                   │
-│                                                  │
-│  ○ Light Theme                                   │
-│  ● Dark Theme                                    │
-│                                                  │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  Preview:                                        │
-│  ┌──────────────────────────────────────────┐   │
-│  │ 🍪 Cookie Preferences                   │   │
-│  │ We use cookies to enhance...           │   │
-│  │ [Reject] [Customize] [Accept All]       │   │
-│  └──────────────────────────────────────────┘   │
-│           ↑ Matches your selection              │
-└──────────────────────────────────────────────────┘
-```
+This plugin follows WordPress guidelines for human-readable code. All JavaScript and CSS files are distributed in their original, unminified source form.
 
-Choose between **Light** (white background, dark text) or **Dark** (dark background, light text) to match your website design.
+### Source Code Repository
 
----
+https://github.com/cookienod/cookienod-wordpress
 
-### Advanced Settings
+### Build Process
 
-#### Enable Google Consent Mode
+No build process is required. The plugin uses vanilla JavaScript and CSS files that are human-readable and can be studied, modified, and extended directly. All inline scripts and styles are output using WordPress's `wp_enqueue_script()`, `wp_enqueue_style()`, `wp_add_inline_script()`, and `wp_add_inline_style()` functions.
 
-```
-┌──────────────────────────────────────────────────┐
-│  📊 Google Consent Mode v2                         │
-│  ☑ Enable Google Consent Mode                     │
-└──────────────────────────────────────────────────┘
-```
+### File Structure
 
-When enabled, CookieNod integrates with Google's Consent Mode API:
-- Sends consent signals to Google Tag Manager
-- Controls Google Analytics 4 and Google Ads behavior
-- Supports the new `ad_user_data` and `ad_personalization` signals
+**JavaScript:**
+- `assets/js/admin.js` - Admin JavaScript (human-readable source, no build)
 
-**Requires**: Google Tag Manager or gtag.js already on your site
+**CSS:**
+- `assets/css/admin.css` - Admin styles (human-readable source, no build)
+- `assets/css/banner-preview-source.css` - Banner preview CSS for admin JS preview function
+- `assets/css/banner-preview.css` - CSS editor iframe preview styles
+- `assets/css/custom-css-editor.css` - Custom CSS editor admin page styles
+- `assets/css/policy-generator.css` - Policy generator page styles
+- `assets/css/script-blocker.css` - Script blocker placeholder styles
 
----
+### Developer Notes
 
-#### A/B Testing
-
-```
-┌──────────────────────────────────────────────────┐
-│  🧪 A/B Testing                                    │
-│                                                  │
-│  Create tests to optimize your consent banner    │
-│  and improve consent rates.                        │
-│                                                  │
-│  [ Create New Test ]                              │
-└──────────────────────────────────────────────────┘
-```
-
-Allows you to test:
-- Different banner positions (bottom, top, center)
-- Different button colors
-- Traffic splitting between variants
-- View conversion rates and accept rates
-- Set winning variant to apply permanently
-
----
-
-## Cookie Manager
-
-### Automatic Scanning
-
-CookieNod automatically scans your site weekly to discover new cookies.
-
-### Cookie Detection
-
-Cookies are detected automatically when visitors browse your website. The CookieNod JavaScript scanner identifies cookies as they are set in users' browsers.
-
-**To trigger detection:**
-1. Visit your website in an incognito/private window
-2. Interact with the consent banner (accept/reject/customize)
-3. Browse different pages on your site
-4. Return to **CookieNod → Cookie Manager** to see detected cookies
-
-```
-┌──────────────────────────────────────────────────┐
-│  🔍 Cookie Manager                                 │
-│                                                  │
-│  Last updated: 3 days ago                         │
-│                                                  │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  │    5    │ │    3    │ │    4    │           │
-│  │Necessary│ │Functional│ │Analytics│           │
-│  └─────────┘ └─────────┘ └─────────┘           │
-│                                                  │
-│  [All Cookies] [Necessary] [Functional] ...      │
-│                                                  │
-│  Cookie Name    Category   Type   Source        │
-│  ────────────────────────────────────────────── │
-│  _ga            Analytics HTTP   google.com     │
-│  PHPSESSID      Necessary HTTP   example.com    │
-│                                                  │
-└──────────────────────────────────────────────────┘
-```
-
-### Scan Results
-
-| Column | Description |
-|--------|-------------|
-| Cookie Name | The actual cookie identifier |
-| Domain | Where the cookie is set |
-| Category | Necessary, Functional, Analytics, or Marketing |
-| Description | What the cookie does |
-| Source | First-party or Third-party |
-
----
-
-## Consent Log
-
-### Viewing Consent Records
-
-```
-┌──────────────────────────────────────────────────┐
-│  📋 Consent Log                                    │
-├──────────────────────────────────────────────────┤
-│  Date              │ User │ Preferences           │
-├──────────────────┼──────┼─────────────────────┤
-│  2024-01-15      │ #123 │ ✅ Necessary        │
-│  14:32:01        │      │ ❌ Functional       │
-│                  │      │ ✅ Analytics         │
-│                  │      │ ❌ Marketing         │
-├──────────────────┼──────┼─────────────────────┤
-│  2024-01-15      │ #124 │ ✅ All Categories   │
-│  14:45:22        │      │                     │
-└──────────────────┴──────┴─────────────────────┘
-
-Export: [ 📥 CSV ] [ 📥 JSON ]
-```
-
-The consent log records:
-- **Timestamp**: When consent was given/changed
-- **User ID**: Anonymous identifier (not personal data)
-- **IP Address**: Hashed for privacy
-- **Consent Choices**: Which categories were accepted
-- **Banner Variant**: If A/B testing is enabled
-
-### Data Retention
-
-Consent logs are stored for **12 months** by default. You can export them for compliance audits.
-
----
-
-## Advanced Features
-
-### Custom CSS
-
-```
-┌──────────────────────────────────────────────────┐
-│  🎨 Customize CSS                                  │
-│                                                  │
-│  .cookienod-banner {                             │
-│    background: #your-brand-color !important;     │
-│    border-radius: 12px !important;             │
-│  }                                               │
-│                                                  │
-│  .cookienod-accept-btn {                        │
-│    background: linear-gradient(...) !important; │
-│  }                                               │
-└──────────────────────────────────────────────────┘
-```
-
-**Common Customizations:**
-
-```css
-/* Change banner background */
-#cs-consent-banner {
-  background: #1a1a2e !important;
-}
-
-/* Style the accept button */
-#cs-accept-btn {
-  background: #e94560 !important;
-  border-radius: 8px !important;
-}
-
-/* Change font */
-#cs-consent-banner {
-  font-family: 'Your Font', sans-serif !important;
-}
-```
-
----
-
-### Cookie Policy Generator
-
-```
-┌──────────────────────────────────────────────────┐
-│  📄 Cookie Policy Generator                      │
-│                                                  │
-│  Generate a comprehensive cookie policy based   │
-│  on your actual cookie scan results.              │
-│                                                  │
-│  [ 📄 Generate Policy ]                           │
-│                                                  │
-│  ┌──────────────────────────────────────────┐   │
-│  │ Cookie Policy for example.com            │   │
-│  │                                          │   │
-│  │ This website uses cookies...             │   │
-│  │                                          │   │
-│  │ [ Copy to Clipboard ]                    │   │
-│  └──────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────┘
-```
-
-The generated policy includes:
-- Introduction to cookies
-- List of all detected cookies
-- Purpose of each cookie
-- Expiration information
-- How to manage preferences
-
-**To use:**
-1. Generate the policy
-2. Copy the content
-3. Create a new WordPress page
-4. Paste and publish
-5. Link from your footer
-
----
-
-## Troubleshooting
-
-### API Key Not Verified
-
-**Symptoms**: "Invalid API Key" message
-
-**Solutions**:
-1. Check you've copied the entire key (starts with `CB-` and is 64 characters long)
-2. Ensure your domain matches the license key domain
-3. Verify your WordPress site URL matches exactly what's registered
-4. Contact support if the issue persists
-
----
-
-### Banner Not Showing
-
-**Symptoms**: No cookie banner appears
-
-**Checklist**:
-- [ ] Plugin is activated
-- [ ] License key is valid
-- [ ] No JavaScript errors in browser console
-- [ ] Consent cookie not already set (check in incognito/private window)
-
-**Debug Mode**:
-Enable debug mode in settings to see detailed information in your browser's developer console:
-1. Go to **CookieNod → Settings**
-2. Check "Enable Debug Mode"
-3. Open browser developer console (F12) and check the Console tab
-
----
-
-### Cookies Not Being Blocked
-
-**Symptoms**: Analytics still firing before consent
-
-**Common Causes**:
-1. **Blocking mode not enabled**: Check settings
-2. **Caching**: Clear all caches (plugin, CDN, browser)
-3. **Consent already given**: Check in an incognito/private window
-
-**Solution**:
-1. Go to **CookieNod → Settings**
-2. Ensure **Auto** mode is selected for JavaScript-based blocking
-3. For server-side blocking, select **Silent** or **Placeholders** mode
-4. Clear all caches and test again
-
----
-
-### Translation Not Loading
-
-**Symptoms**: English text instead of your language
-
-**Solution**:
-CookieNod uses WordPress standard translation:
-1. Go to **Settings → General → Site Language**
-2. Select your language
-3. CookieNod will load matching translations
-
-Available languages: English, Spanish, French, German, Italian, Dutch
-
----
-
-## FAQ
-
-### General Questions
-
-**Q: Is CookieNod free?**
-A: Yes! We offer a free tier with basic features. Premium plans unlock advanced scanning, A/B testing, and priority support.
-
-**Q: Does it work with caching plugins?**
-A: Yes. CookieNod is compatible with WP Rocket, W3 Total Cache, LiteSpeed Cache, and others. The banner uses JavaScript which loads after cached content.
-
-**Q: Will it slow down my site?**
-A: No. CookieNod loads asynchronously and has minimal impact. The script is ~12KB minified and gzipped.
-
-### Technical Questions
-
-**Q: How does CookieNod block cookies?**
-A: CookieNod uses two layers of protection. First, it prevents third-party scripts (like Google Analytics, Facebook Pixel) from loading on your page. Second, it monitors cookie activity in the browser to ensure only approved cookies are set based on user consent.
-
-**Q: What cookie categories are supported?**
-A: Necessary, Functional, Analytics, and Marketing. You can customize these in your CookieNod Dashboard.
-
-**Q: How do I update the cookie database?**
-A: Cookies are detected automatically when visitors browse your site. Visit your website in an incognito window and interact with pages to trigger detection. The Cookie Manager page displays all detected cookies.
-
-**Q: Can I use it with Google Tag Manager?**
-A: Yes! Enable "Google Consent Mode" in settings and use our GTM template from the Tag Gallery.
-
-### Compliance Questions
-
-**Q: Is it GDPR compliant?**
-A: Yes. CookieNod implements GDPR requirements including prior consent, granular categories, and consent logs.
-
-**Q: Does it support CCPA?**
-A: Yes. The "Do Not Sell" requirements are handled through the Marketing category.
-
-**Q: What regulations are supported?**
-A: CookieNod supports 20+ global regulations including GDPR (EU/UK), CCPA/CPRA (California), LGPD (Brazil), POPIA (South Africa), PIPEDA (Canada), and many more. Auto-detection is available based on visitor location (requires GeoIP).
-
-**Q: How long are consent logs kept?**
-A: 12 months by default, configurable in your dashboard.
-
-**Q: Can users withdraw consent?**
-A: Yes. The floating cookie button (appears after first consent) allows users to change preferences anytime.
-
----
-
-## Getting Help
-
-### Support Channels
-
-| Method | Response Time | Best For |
-|--------|---------------|----------|
-| Documentation | Instant | How-to guides |
-| Email Support | 24 hours | Complex issues |
-| Live Chat | Real-time | Quick questions |
-| GitHub Issues | 48 hours | Bug reports |
-
-### Contact Us
-
-- 🌐 **Website**: [cookienod.com](https://cookienod.com)
-- 📧 **Email**: support@cookienod.com
-- 💬 **Live Chat**: Available in dashboard (9am-6pm EST)
-- 🐙 **GitHub**: github.com/cookienod/wp-plugin
+If you modify this plugin, simply edit the source files directly. No compilation step is needed.
 
 ---
 
 ## Changelog
 
 ### Version 1.0.0
-- ✅ Initial release
-- ✅ WordPress 6.x compatibility
-- ✅ WooCommerce integration
-- ✅ Google Consent Mode v2 support
-- ✅ A/B testing framework
-- ✅ Custom CSS support
+
+- Initial release
+- Multi-region compliance support (20+ regulations)
+- Google Consent Mode v2 integration
+- Four blocking modes: Banner Only, Manual Consent Attributes, Silent Blocking, and Placeholders
+- JavaScript-based cookie scanning and categorization
+- Script blocking with data-consent attributes
+- Consent logging with CSV export
+- Custom CSS Editor with live preview and style presets (Minimal, Rounded, Glassmorphism, Brutalist, Elegant)
+- A/B testing for banner optimization
+- Cookie Policy Generator with multiple templates (GDPR, CCPA, Combined, Simple)
+- WooCommerce integration with consent checkboxes
+- Elementor, Gravity Forms, and Contact Form 7 compatibility
+- WordPress directory compliance:
+  - All scripts use `wp_enqueue_script()` and `wp_add_inline_script()`
+  - All styles use `wp_enqueue_style()` and `wp_add_inline_style()`
+  - Human-readable source files included
+  - External services documented with Terms/Privacy links
+  - Proper data sanitization and escaping throughout
 
 ---
 
-<p align="center">
-  <strong>Made with ❤️ by the CookieNod Team</strong>
-  <br>
-  <a href="https://cookienod.com">cookienod.com</a> • 
-  <a href="https://twitter.com/cookienod">Twitter</a> • 
-  <a href="https://github.com/cookienod">GitHub</a>
-</p>
+## Credits
+
+Developed by the CookieNod team.
+
+- **Website**: https://cookienod.com
+- **Facebook**: https://www.facebook.com/cookienod/
+- **GitHub**: https://github.com/cookienod

@@ -197,6 +197,13 @@ class CookieNod_Script_Blocker {
     private $consent = array();
 
     /**
+     * Output buffer level when we started buffering
+     *
+     * @var int
+     */
+    private $buffer_level = 0;
+
+    /**
      * Constructor
      */
     public function __construct() {
@@ -212,7 +219,8 @@ class CookieNod_Script_Blocker {
 
         // Check saved consent
         if (isset($_COOKIE['cookienod_consent'])) {
-            $this->consent = json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+            $this->consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
         }
 
         $this->init();
@@ -250,20 +258,23 @@ class CookieNod_Script_Blocker {
     }
 
     /**
-     * Start output buffering
+     * Start output buffering and track the buffer level
      */
     public function start_buffer() {
         if (!is_admin() && !wp_is_json_request()) {
             ob_start(array($this, 'buffer_callback'));
+            $this->buffer_level = ob_get_level();
         }
     }
 
     /**
-     * End output buffering
+     * End output buffering - only closes our own buffer
      */
     public function end_buffer() {
-        if (ob_get_level()) {
+        // Only close if we have a tracked buffer level and it still exists
+        if ($this->buffer_level > 0 && ob_get_level() >= $this->buffer_level) {
             ob_end_flush();
+            $this->buffer_level = 0; // Reset to prevent double-closing
         }
     }
 
@@ -443,7 +454,7 @@ class CookieNod_Script_Blocker {
         // Extract src for display
         preg_match('/src=["\']([^"\']+)["\']/', $iframe, $matches);
         $src = isset($matches[1]) ? $matches[1] : '';
-        $host = parse_url($src, PHP_URL_HOST);
+        $host = wp_parse_url($src, PHP_URL_HOST);
 
         $placeholder = sprintf(
             '<div class="cookienod-blocked-iframe" data-src="%s">' .
@@ -582,69 +593,17 @@ class CookieNod_Script_Blocker {
     }
 
     /**
-     * Output placeholder styles
+     * Output placeholder styles using wp_enqueue_style
      */
     public function output_placeholder_styles() {
-        ?>
-        <style type="text/css">
-            .cookienod-blocked-script,
-            .cookienod-blocked-iframe {
-                margin: 10px 0;
-                padding: 20px;
-                background: #f5f5f5;
-                border: 2px dashed #ccc;
-                border-radius: 4px;
-                text-align: center;
-            }
+        // Enqueue placeholder styles from file
+        wp_enqueue_style(
+            'cookienod-script-blocker',
+            COOKIENOD_PLUGIN_URL . 'assets/css/script-blocker.css',
+            array(),
+            COOKIENOD_VERSION
+        );
 
-            .cookienod-placeholder {
-                color: #666;
-            }
-
-            .cookienod-placeholder-icon {
-                font-size: 32px;
-                display: block;
-                margin-bottom: 10px;
-            }
-
-            .cookienod-placeholder p {
-                margin: 0 0 15px;
-                font-size: 14px;
-            }
-
-            .cookienod-load-script,
-            .cookienod-load-iframe {
-                background: #0073aa;
-                color: #fff;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 3px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-
-            .cookienod-load-script:hover,
-            .cookienod-load-iframe:hover {
-                background: #005a87;
-            }
-
-            .cookienod-iframe-placeholder {
-                min-height: 200px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-
-            /* Loading state */
-            .cookienod-blocked-script.loading .cookienod-placeholder,
-            .cookienod-blocked-iframe.loading .cookienod-placeholder,
-            .cookienod-blocked-iframe.loading .cookienod-iframe-placeholder {
-                opacity: 0.5;
-                pointer-events: none;
-            }
-        </style>
-        <?php
         // Add script loader for silent mode
         if ($this->silent_mode) {
             $this->output_silent_mode_script();
@@ -652,67 +611,42 @@ class CookieNod_Script_Blocker {
     }
 
     /**
-     * Output JavaScript for silent mode - loads blocked scripts after consent
+     * Output JavaScript for silent mode using wp_add_inline_script
      */
     private function output_silent_mode_script() {
-        ?>
-        <script>
-        (function() {
-            // CookieNod Silent Mode - Load blocked scripts after consent
-            function loadBlockedScripts(category) {
-                const scripts = document.querySelectorAll('script[type="text/cookienod"][data-category="' + category + '"]');
-                scripts.forEach(function(script) {
-                    const encodedScript = script.getAttribute('data-script');
-                    if (encodedScript) {
-                        try {
-                            // Decode and inject the script
-                            const decoded = atob(encodedScript);
-                            const temp = document.createElement('div');
-                            temp.innerHTML = decoded;
-                            const newScript = temp.firstChild;
-                            if (newScript) {
-                                document.head.appendChild(newScript);
-                            }
-                            // Remove the placeholder
-                            script.remove();
-                        } catch (e) {
-                            console.error('CookieNod: Failed to load blocked script', e);
-                        }
-                    }
-                });
-            }
+        wp_register_script('cookienod-silent-mode', false, array(), COOKIENOD_VERSION, true);
+        wp_enqueue_script('cookienod-silent-mode');
 
-            // Listen for consent changes from CookieNod JavaScript
-            window.addEventListener('cookiePreferencesChanged', function(e) {
-                if (e.detail) {
-                    // Load scripts for categories that are now allowed
-                    ['functional', 'analytics', 'marketing'].forEach(function(cat) {
-                        if (e.detail[cat]) {
-                            loadBlockedScripts(cat);
-                        }
-                    });
-                }
-            });
+        $inline_script = "/* CookieNod Silent Mode - Load blocked scripts after consent */\n";
+        $inline_script .= "(function(){\n";
+        $inline_script .= "  function loadBlockedScripts(category){\n";
+        $inline_script .= "    var scripts = document.querySelectorAll('script[type=\"text/cookienod\"][data-category=\"' + category + '\"]');\n";
+        $inline_script .= "    scripts.forEach(function(script){\n";
+        $inline_script .= "      var encodedScript = script.getAttribute('data-script');\n";
+        $inline_script .= "      if(encodedScript){\n";
+        $inline_script .= "        try{\n";
+        $inline_script .= "          var decoded = atob(encodedScript);\n";
+        $inline_script .= "          var temp = document.createElement('div');\n";
+        $inline_script .= "          temp.innerHTML = decoded;\n";
+        $inline_script .= "          var newScript = temp.firstChild;\n";
+        $inline_script .= "          if(newScript){document.head.appendChild(newScript);}\n";
+        $inline_script .= "          script.remove();\n";
+        $inline_script .= "        }catch(e){console.error('CookieNod: Failed to load blocked script',e);}\n";
+        $inline_script .= "      }\n";
+        $inline_script .= "    });\n";
+        $inline_script .= "  }\n";
+        $inline_script .= "  window.addEventListener('cookiePreferencesChanged',function(e){\n";
+        $inline_script .= "    if(e.detail){['functional','analytics','marketing'].forEach(function(cat){if(e.detail[cat]){loadBlockedScripts(cat);}});}\n";
+        $inline_script .= "  });\n";
+        $inline_script .= "  document.addEventListener('DOMContentLoaded',function(){\n";
+        $inline_script .= "    try{\n";
+        $inline_script .= "      var prefs = localStorage.getItem('cs_cookie_prefs');\n";
+        $inline_script .= "      if(prefs){var parsed = JSON.parse(prefs);['functional','analytics','marketing'].forEach(function(cat){if(parsed[cat]){loadBlockedScripts(cat);}});}\n";
+        $inline_script .= "    }catch(e){}\n";
+        $inline_script .= "  });\n";
+        $inline_script .= "})();\n";
 
-            // Check existing consent on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                try {
-                    const prefs = localStorage.getItem('cs_cookie_prefs');
-                    if (prefs) {
-                        const parsed = JSON.parse(prefs);
-                        ['functional', 'analytics', 'marketing'].forEach(function(cat) {
-                            if (parsed[cat]) {
-                                loadBlockedScripts(cat);
-                            }
-                        });
-                    }
-                } catch (e) {
-                    // Silent fail
-                }
-            });
-        })();
-        </script>
-        <?php
+        wp_add_inline_script('cookienod-silent-mode', $inline_script);
     }
 
     /**

@@ -25,6 +25,13 @@ class CookieNod_Frontend {
     private $options;
 
     /**
+     * Output buffer level when we started buffering
+     *
+     * @var int
+     */
+    private $buffer_level = 0;
+
+    /**
      * Check whether frontend consent features should run.
      * Requires a configured API key.
      *
@@ -67,12 +74,15 @@ class CookieNod_Frontend {
             return;
         }
 
-        // Start output buffering with callback to inject blocker
+        // Start output buffering with callback to inject blocker and track the level
         ob_start(array($this, 'inject_cookie_blocker'));
+        $this->buffer_level = ob_get_level();
     }
 
     /**
      * Inject cookie blocker at the beginning of HTML output
+     * Note: This is a fallback for early cookie blocking.
+     * The proper WordPress way is done via wp_add_inline_script in output_script().
      */
     public function inject_cookie_blocker($buffer) {
         // Only process HTML responses
@@ -84,8 +94,8 @@ class CookieNod_Frontend {
             return $buffer;
         }
 
-        // Build the cookie blocker script
-        $blocker = "\n<!-- CookieNod Immediate Blocker -->\n<script>\n";
+        // Build the cookie blocker script content
+        $blocker = '<script>' . "\n";
         $blocker .= "(function(){\n";
         $blocker .= "  'use strict';\n";
         $blocker .= "  var hasCons = localStorage.getItem('cs_consent_given') === 'true';\n";
@@ -115,17 +125,19 @@ class CookieNod_Frontend {
     }
 
     /**
-     * End output buffering
+     * End output buffering - only closes our own buffer
      */
     public function end_output_buffering() {
-        if (ob_get_level()) {
+        // Only close if we have a tracked buffer level and it still exists
+        if ($this->buffer_level > 0 && ob_get_level() >= $this->buffer_level) {
             ob_end_flush();
+            $this->buffer_level = 0; // Reset to prevent double-closing
         }
     }
 
     /**
      * Output CookieNod script FIRST in head before any other scripts
-     * Priority 0 ensures it loads before analytics, tracking, etc.
+     * Uses WordPress wp_enqueue_script and wp_add_inline_script functions
      */
     public function output_script() {
         if (!$this->has_valid_api_key()) {
@@ -156,136 +168,185 @@ class CookieNod_Frontend {
         $ajax_url = admin_url('admin-ajax.php');
         $nonce = wp_create_nonce('cookienod_wp_nonce');
 
-        // Combine all inline scripts into one block
-        $inline_js = "\n<!-- CookieNod Scripts -->\n<script>\n";
-        $inline_js .= "(function(){\n";
-        $inline_js .= "  'use strict';\n\n";
+        // Build data-texts attribute as JSON
+        $texts_json = wp_json_encode($texts);
+        $texts_attr = htmlspecialchars($texts_json, ENT_QUOTES, 'UTF-8');
+
+        // Register and enqueue the main cookienod script
+        wp_register_script(
+            'cookienod-main',
+            'https://cookienod.com/cookienod.min.js?v=' . COOKIENOD_VERSION,
+            array(),
+            COOKIENOD_VERSION,
+            false // Load in head
+        );
+
+        // Add data attributes to the main script
+        $attrs = sprintf(
+            ' data-license-key="%s" data-block-mode="%s" data-banner-position="%s" data-banner-theme="%s" data-texts="%s"',
+            esc_attr($api_key_escaped),
+            esc_attr($block_mode),
+            esc_attr($position),
+            esc_attr($theme),
+            esc_attr($texts_attr)
+        );
+        add_filter(
+            'script_loader_tag',
+            function ($tag, $handle) use ($attrs) {
+                if ($handle !== 'cookienod-main') {
+                    return $tag;
+                }
+                return str_replace('<script ', '<script' . $attrs . ' ', $tag);
+            },
+            10,
+            2
+        );
+
+        // Build inline script for data-consent handler, excluded scripts, and consent logging
+        $inline_script = "(function(){\n";
+        $inline_script .= "  'use strict';\n\n";
 
         // Data-consent handler
-        $inline_js .= "  // Data-consent handler\n";
-        $inline_js .= "  window.__cookienodShouldLoad=function(cat){\n";
-        $inline_js .= "    var h=localStorage.getItem('cs_consent_given')==='true';\n";
-        $inline_js .= "    if(!h)return cat.indexOf('necessary')>-1;\n";
-        $inline_js .= "    var p=JSON.parse(localStorage.getItem('cs_cookie_prefs')||'{}');\n";
-        $inline_js .= "    return cat.split(',').some(function(c){\n";
-        $inline_js .= "      c=c.trim();if(c==='necessary')return true;\n";
-        $inline_js .= "      return p[c]===true;\n";
-        $inline_js .= "    });\n";
-        $inline_js .= "  };\n";
-        $inline_js .= "  document.querySelectorAll('script[data-consent]').forEach(function(sc){\n";
-        $inline_js .= "    var cat=sc.getAttribute('data-consent'),src=sc.getAttribute('data-src')||sc.src;\n";
-        $inline_js .= "    if(src&&!window.__cookienodShouldLoad(cat))sc.remove();\n";
-        $inline_js .= "  });\n\n";
+        $inline_script .= "  // Data-consent handler\n";
+        $inline_script .= "  window.__cookienodShouldLoad=function(cat){\n";
+        $inline_script .= "    var h=localStorage.getItem('cs_consent_given')==='true';\n";
+        $inline_script .= "    if(!h)return cat.indexOf('necessary')>-1;\n";
+        $inline_script .= "    var p=JSON.parse(localStorage.getItem('cs_cookie_prefs')||'{}');\n";
+        $inline_script .= "    return cat.split(',').some(function(c){\n";
+        $inline_script .= "      c=c.trim();if(c==='necessary')return true;\n";
+        $inline_script .= "      return p[c]===true;\n";
+        $inline_script .= "    });\n";
+        $inline_script .= "  };\n";
+        $inline_script .= "  document.querySelectorAll('script[data-consent]').forEach(function(sc){\n";
+        $inline_script .= "    var cat=sc.getAttribute('data-consent'),src=sc.getAttribute('data-src')||sc.src;\n";
+        $inline_script .= "    if(src&&!window.__cookienodShouldLoad(cat))sc.remove();\n";
+        $inline_script .= "  });\n\n";
 
         // Excluded scripts handler
         $excluded_scripts = $this->options['excluded_scripts'] ?? '';
         if (!empty($excluded_scripts)) {
             $patterns = array_filter(array_map('trim', explode("\n", $excluded_scripts)));
             if (!empty($patterns)) {
-                $inline_js .= "  // Excluded scripts\n";
-                $inline_js .= "  var excludedPat=[";
+                $inline_script .= "  // Excluded scripts\n";
+                $inline_script .= "  var excludedPat=[";
                 $first = true;
                 foreach ($patterns as $pattern) {
                     if (empty($pattern)) continue;
                     $escaped = str_replace("'", "\\'", $pattern);
-                    if (!$first) $inline_js .= ",";
-                    $inline_js .= "'" . $escaped . "'";
+                    if (!$first) $inline_script .= ",";
+                    $inline_script .= "'" . $escaped . "'";
                     $first = false;
                 }
-                $inline_js .= "];\n";
-                $inline_js .= "  document.querySelectorAll('script[src]').forEach(function(sc){\n";
-                $inline_js .= "    excludedPat.forEach(function(p){\n";
-                $inline_js .= "      if(new RegExp(p.replace(/\\*/g,'.*').replace(/\\//g,'\\\\/'),'i').test(sc.src))sc.remove();\n";
-                $inline_js .= "    });\n";
-                $inline_js .= "  });\n\n";
+                $inline_script .= "];\n";
+                $inline_script .= "  document.querySelectorAll('script[src]').forEach(function(sc){\n";
+                $inline_script .= "    excludedPat.forEach(function(p){\n";
+                $inline_script .= "      if(new RegExp(p.replace(/\\*/g,'.*').replace(/\\//g,'\\\\/'),'i').test(sc.src))sc.remove();\n";
+                $inline_script .= "    });\n";
+                $inline_script .= "  });\n\n";
             }
         }
 
         // Consent logging and cookie detection combined
-        $inline_js .= "  // Consent logging & detection\n";
-        $inline_js .= "  var aj='" . $ajax_url . "',no='" . $nonce . "';\n";
-        $inline_js .= "  var lk='cs_consent_logged_v2',dk='cs_cookies_detected';\n";
-        $inline_js .= "  var sid=Math.random().toString(36).substring(2)+Date.now().toString(36);\n";
-        $inline_js .= "  var rs=false,de=sessionStorage.getItem(dk)==='true';\n";
+        $inline_script .= "  // Consent logging & detection\n";
+        $inline_script .= "  var aj='" . $ajax_url . "',no='" . $nonce . "';\n";
+        $inline_script .= "  var lk='cs_consent_logged_v2',dk='cs_cookies_detected';\n";
+        $inline_script .= "  var sid=Math.random().toString(36).substring(2)+Date.now().toString(36);\n";
+        $inline_script .= "  var rs=false,de=sessionStorage.getItem(dk)==='true';\n";
 
         // Consent logging function - with deduplication and pending check
-        $inline_js .= "  var lp='cs_last_logged',ld='cs_log_pending';\n";
-        $inline_js .= "  function logC(f,rt){\n";
-        $inline_js .= "    if(rs||sessionStorage.getItem(ld))return;\n";
-        $inline_js .= "    rt=rt||0;if(rt>10)return;\n";
-        $inline_js .= "    var hc=localStorage.getItem('cs_consent_given')==='true';\n";
-        $inline_js .= "    if(!hc&&!f)return;\n";
-        $inline_js .= "    var pr={};try{var r=localStorage.getItem('cs_cookie_prefs');if(r)pr=JSON.parse(r);}catch(e){}\n";
-        $inline_js .= "    if(Object.keys(pr).length===0){if(rt<5){setTimeout(function(){logC(f,rt+1);},500);return;}\n";
-        $inline_js .= "    pr={necessary:false,functional:false,analytics:false,marketing:false};}\n";
-        $inline_js .= "    var ph=btoa(JSON.stringify(pr));\n";
-        $inline_js .= "    if(sessionStorage.getItem(lp)===ph)return;\n";
-        $inline_js .= "    sessionStorage.setItem(ld,ph);rs=true;var d=new FormData();\n";
-        $inline_js .= "    d.append('action','cookienod_log_consent');d.append('nonce',no);\n";
-        $inline_js .= "    d.append('session_id',sid);d.append('preferences',JSON.stringify(pr));\n";
-        $inline_js .= "    fetch(aj,{method:'POST',body:d,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(r){\n";
-        $inline_js .= "      sessionStorage.setItem(lp,ph);sessionStorage.removeItem(ld);rs=false;\n";
-        $inline_js .= "    }).catch(function(){sessionStorage.removeItem(ld);rs=false;});\n";
-        $inline_js .= "  }\n";
+        $inline_script .= "  var lp='cs_last_logged',ld='cs_log_pending';\n";
+        $inline_script .= "  function logC(f,rt){\n";
+        $inline_script .= "    if(rs||sessionStorage.getItem(ld))return;\n";
+        $inline_script .= "    rt=rt||0;if(rt>10)return;\n";
+        $inline_script .= "    var hc=localStorage.getItem('cs_consent_given')==='true';\n";
+        $inline_script .= "    if(!hc&&!f)return;\n";
+        $inline_script .= "    var pr={};try{var r=localStorage.getItem('cs_cookie_prefs');if(r)pr=JSON.parse(r);}catch(e){}\n";
+        $inline_script .= "    if(Object.keys(pr).length===0){if(rt<5){setTimeout(function(){logC(f,rt+1);},500);return;}\n";
+        $inline_script .= "    pr={necessary:false,functional:false,analytics:false,marketing:false;};}\n";
+        $inline_script .= "    var ph=btoa(JSON.stringify(pr));\n";
+        $inline_script .= "    if(sessionStorage.getItem(lp)===ph)return;\n";
+        $inline_script .= "    sessionStorage.setItem(ld,ph);rs=true;var d=new FormData();\n";
+        $inline_script .= "    d.append('action','cookienod_log_consent');d.append('nonce',no);\n";
+        $inline_script .= "    d.append('session_id',sid);d.append('preferences',JSON.stringify(pr));\n";
+        $inline_script .= "    fetch(aj,{method:'POST',body:d,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(r){\n";
+        $inline_script .= "      sessionStorage.setItem(lp,ph);sessionStorage.removeItem(ld);rs=false;\n";
+        $inline_script .= "    }).catch(function(){sessionStorage.removeItem(ld);rs=false;});\n";
+        $inline_script .= "  }\n";
 
         // Cookie detection function
-        $inline_js .= "  function detC(){\n";
-        $inline_js .= "    if(de||!document.cookie)return;\n";
-        $inline_js .= "    var co=[],ca=document.cookie.split(';');\n";
-        $inline_js .= "    for(var i=0;i<ca.length;i++){var c=ca[i].trim(),eq=c.indexOf('=');\n";
-        $inline_js .= "    co.push({name:eq>-1?c.substr(0,eq):c,value:eq>-1?c.substr(eq+1).substring(0,50):'',type:'http',source:window.location.hostname});}\n";
-        $inline_js .= "    var d=new FormData();d.append('action','cookienod_detect_cookies');d.append('nonce',no);\n";
-        $inline_js .= "    d.append('cookies',JSON.stringify(co));\n";
-        $inline_js .= "    fetch(aj,{method:'POST',body:d,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(r){\n";
-        $inline_js .= "      if(r.success){de=true;sessionStorage.setItem(dk,'true');}\n";
-        $inline_js .= "    });\n";
-        $inline_js .= "  }\n";
+        $inline_script .= "  function detC(){\n";
+        $inline_script .= "    if(de||!document.cookie)return;\n";
+        $inline_script .= "    var co=[],ca=document.cookie.split(';');\n";
+        $inline_script .= "    for(var i=0;i<ca.length;i++){var c=ca[i].trim(),eq=c.indexOf('=');\n";
+        $inline_script .= "    co.push({name:eq>-1?c.substr(0,eq):c,value:eq>-1?c.substr(eq+1).substring(0,50):'',type:'http',source:window.location.hostname});}\n";
+        $inline_script .= "    var d=new FormData();d.append('action','cookienod_detect_cookies');d.append('nonce',no);\n";
+        $inline_script .= "    d.append('cookies',JSON.stringify(co));\n";
+        $inline_script .= "    fetch(aj,{method:'POST',body:d,credentials:'same-origin'}).then(function(r){return r.json();}).then(function(r){\n";
+        $inline_script .= "      if(r.success){de=true;sessionStorage.setItem(dk,'true');}\n";
+        $inline_script .= "    });\n";
+        $inline_script .= "  }\n";
 
         // Event listeners
-        $inline_js .= "  document.addEventListener('DOMContentLoaded',function(){\n";
-        $inline_js .= "    if(localStorage.getItem('cs_consent_given')==='true')logC(true);\n";
-        $inline_js .= "    window.addEventListener('cookiePreferencesChanged',function(e){logC(true);});\n";
-        $inline_js .= "    setTimeout(function(){logC(true);},5000);\n";
-        $inline_js .= "    setTimeout(detC,2000);\n";
-        $inline_js .= "  });\n";
-
-        $inline_js .= "})();\n</script>\n";
+        $inline_script .= "  document.addEventListener('DOMContentLoaded',function(){\n";
+        $inline_script .= "    if(localStorage.getItem('cs_consent_given')==='true')logC(true);\n";
+        $inline_script .= "    window.addEventListener('cookiePreferencesChanged',function(e){logC(true);});\n";
+        $inline_script .= "    setTimeout(function(){logC(true);},5000);\n";
+        $inline_script .= "    setTimeout(detC,2000);\n";
+        $inline_script .= "  });\n";
 
         // Center modal overlay (if needed)
         if ($position === 'center') {
-            $inline_js .= "<div id='cs-modal-overlay' style='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999998;display:none;'></div>\n";
-            $inline_js .= "<script>(function(){var o=document.getElementById('cs-modal-overlay');\n";
-            $inline_js .= "function h(){if(o)o.style.display='none'}function s(){if(o)o.style.display='block'}\n";
-            $inline_js .= "new MutationObserver(function(){if(document.getElementById('cs-consent-banner'))s();}).observe(document.body,{childList:true,subtree:true});\n";
-            $inline_js .= "new MutationObserver(function(m){m.forEach(function(x){if(x.removedNodes)for(var i=0;i<x.removedNodes.length;i++)if(x.removedNodes[i].id==='cs-consent-banner'){h();return;}});}).observe(document.body,{childList:true});\n";
-            $inline_js .= "if(o)o.onclick=function(e){if(e.target===o){var b=document.getElementById('cs-consent-banner');if(b)b.remove();h();}};})();</script>\n";
+            $inline_script .= "\n  // Center modal overlay handler\n";
+            $inline_script .= "  (function(){\n";
+            $inline_script .= "    var overlay = document.getElementById('cs-modal-overlay');\n";
+            $inline_script .= "    function hideOverlay(){if(overlay)overlay.style.display='none';}\n";
+            $inline_script .= "    function showOverlay(){if(overlay)overlay.style.display='block';}\n";
+            $inline_script .= "    new MutationObserver(function(){if(document.getElementById('cs-consent-banner'))showOverlay();}).observe(document.body,{childList:true,subtree:true});\n";
+            $inline_script .= "    new MutationObserver(function(m){m.forEach(function(x){if(x.removedNodes)for(var i=0;i<x.removedNodes.length;i++)if(x.removedNodes[i].id==='cs-consent-banner'){hideOverlay();return;}});}).observe(document.body,{childList:true});\n";
+            $inline_script .= "    if(overlay)overlay.onclick=function(e){if(e.target===overlay){var b=document.getElementById('cs-consent-banner');if(b)b.remove();hideOverlay();}};\n";
+            $inline_script .= "  })();\n";
         }
 
-        // Theme-specific base CSS to override external JS hardcoded styles
-        $theme_css = '';
+        // Elementor widget consent sync (auto mode)
+        $inline_script .= "\n  // Elementor widget consent sync\n";
+        $inline_script .= "  (function(){\n";
+        $inline_script .= "    function updateElementorWidgets(){\n";
+        $inline_script .= "      var prefs={necessary:true,functional:false,analytics:false,marketing:false};\n";
+        $inline_script .= "      try{var p=localStorage.getItem('cs_cookie_prefs');if(p)prefs=JSON.parse(p);}catch(e){}\n";
+        $inline_script .= "      ['marketing','analytics','functional'].forEach(function(cat){\n";
+        $inline_script .= "        document.querySelectorAll('.elementor-widget.cookienod-require-consent-yes').forEach(function(w){\n";
+        $inline_script .= "          var wc=w.getAttribute('data-consent-category')||'marketing';\n";
+        $inline_script .= "          if(wc===cat){w.classList.toggle('cookienod-consent-given-'+cat,prefs[cat]===true);}\n";
+        $inline_script .= "        });\n";
+        $inline_script .= "      });\n";
+        $inline_script .= "    }\n";
+        $inline_script .= "    document.addEventListener('DOMContentLoaded',function(){updateElementorWidgets();});\n";
+        $inline_script .= "    window.addEventListener('cookiePreferencesChanged',function(){setTimeout(updateElementorWidgets,50);});\n";
+        $inline_script .= "    if(window.elementorFrontend){window.elementorFrontend.hooks.addAction('frontend/element_ready/widget',updateElementorWidgets);}\n";
+        $inline_script .= "  })();\n";
+
+        $inline_script .= "})();\n";
+
+        // Enqueue main script with inline data
+        wp_enqueue_script('cookienod-main');
+        wp_add_inline_script('cookienod-main', $inline_script, 'after');
+
+        // Theme-specific CSS
         if ($theme === 'dark') {
-            $theme_css = "
-<!-- CookieNod Theme CSS -->
-<style type='text/css'>
-#cs-consent-banner,#cs-consent-banner div{background:#1f2937 !important;color:#f9fafb !important;border-color:#374151 !important;}
-#cs-consent-banner h3,#cs-consent-banner p{color:#f9fafb !important;}
-#cs-consent-banner button{background:#374151 !important;color:#f9fafb !important;border-color:#4b5563 !important;}
-#cs-consent-banner button[id*='accept'],#cs-consent-banner button.cs-btn-primary{background:#2563eb !important;color:#fff !important;}
-</style>
-";
+            $theme_css = "#cs-consent-banner,#cs-consent-banner div{background:#1f2937 !important;color:#f9fafb !important;border-color:#374151 !important;}\n";
+            $theme_css .= "#cs-consent-banner h3,#cs-consent-banner p{color:#f9fafb !important;}\n";
+            $theme_css .= "#cs-consent-banner button{background:#374151 !important;color:#f9fafb !important;border-color:#4b5563 !important;}\n";
+            $theme_css .= "#cs-consent-banner button[id*='accept'],#cs-consent-banner button.cs-btn-primary{background:#2563eb !important;color:#fff !important;}";
+
+            wp_register_style('cookienod-theme', false, [], COOKIENOD_VERSION);
+            wp_enqueue_style('cookienod-theme');
+            wp_add_inline_style('cookienod-theme', $theme_css);
         }
 
-        // Build data-texts attribute as JSON
-        $texts_json = json_encode($texts);
-        $texts_attr = htmlspecialchars($texts_json, ENT_QUOTES, 'UTF-8');
-
-        // Main external script
-        $inline_js .= $theme_css;
-        $inline_js .= "<!-- CookieNod Main -->\n";
-        $inline_js .= "<script src='https://cookienod.com/cookienod.min.js?v=" . COOKIENOD_VERSION . "' data-license-key='{$api_key_escaped}' data-block-mode='{$block_mode}' data-banner-position='{$position}' data-banner-theme='{$theme}' data-texts='{$texts_attr}'></script>\n";
-        $inline_js .= "<!-- End CookieNod -->\n";
-
-        echo $inline_js;
+        // Center modal overlay HTML
+        if ($position === 'center') {
+            echo "<div id='cs-modal-overlay' style='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999998;display:none;'></div>\n";
+        }
     }
 
     /**
@@ -293,6 +354,11 @@ class CookieNod_Frontend {
      */
     public function render_banner() {
         if (is_admin() || wp_is_json_request()) {
+            return;
+        }
+
+        // Allow disabling banner via filter (e.g., Elementor editor)
+        if (apply_filters('cookienod_disable_banner', false)) {
             return;
         }
 

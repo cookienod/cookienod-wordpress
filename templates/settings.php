@@ -9,10 +9,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$options = get_option('cookienod_wp_options', array());
-$site_info = get_option('cookienod_wp_site_info');
-$gcm = new CookieNod_Google_Consent_Mode();
-$compliance = new CookieNod_Compliance();
+$cookienod_options = get_option('cookienod_wp_options', array());
+$cookienod_site_info = get_option('cookienod_wp_site_info');
+$cookienod_gcm = new CookieNod_Google_Consent_Mode();
+$cookienod_compliance = new CookieNod_Compliance();
 ?>
 
 <div class="wrap cookienod-settings">
@@ -24,39 +24,39 @@ $compliance = new CookieNod_Compliance();
         <div class="cookienod-settings-grid">
             <!-- API Settings -->
             <div class="cookienod-card">
-                <h2><?php _e('API Configuration', 'cookienod'); ?></h2>
+                <h2><?php esc_html_e('API Configuration', 'cookienod'); ?></h2>
 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><label for="api_key"><?php _e('API Key', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="api_key"><?php esc_html_e('API Key', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="api_key" name="cookienod_wp_options[api_key]"
-                                   value="<?php echo esc_attr($options['api_key'] ?? ''); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['api_key'] ?? ''); ?>"
                                    class="regular-text" />
 
-                            <?php if (!empty($options['api_key'])) : ?>
+                            <?php if (!empty($cookienod_options['api_key'])) : ?>
                                 <button type="button" class="button" id="verify-api-key">
-                                    <?php _e('Verify Key', 'cookienod'); ?>
+                                    <?php esc_html_e('Verify Key', 'cookienod'); ?>
                                 </button>
                                 <span id="api-key-status"></span>
                             <?php endif; ?>
 
                             <p class="description">
-                                <?php _e('Get your API key at', 'cookienod'); ?>
+                                <?php esc_html_e('Get your API key at', 'cookienod'); ?>
                                 <a href="https://cookienod.com" target="_blank">cookienod.com</a>
                             </p>
                         </td>
                     </tr>
 
-                    <?php if ($site_info) : ?>
+                    <?php if ($cookienod_site_info) : ?>
                         <tr>
-                            <th scope="row"><?php _e('Connected Site', 'cookienod'); ?></th>
+                            <th scope="row"><?php esc_html_e('Connected Site', 'cookienod'); ?></th>
                             <td>
-                                <p><strong><?php echo esc_html($site_info['site_name'] ?? 'Unknown'); ?></strong></p>
+                                <p><strong><?php echo esc_html($cookienod_site_info['site_name'] ?? 'Unknown'); ?></strong></p>
                                 <p class="description">
-                                    <?php _e('URL:', 'cookienod'); ?> <?php echo esc_html($site_info['site_url'] ?? ''); ?><br>
-                                    <?php _e('Plan:', 'cookienod'); ?> <?php echo esc_html(ucfirst($site_info['plan'] ?? 'free')); ?><br>
-                                    <?php _e('Status:', 'cookienod'); ?> <?php echo esc_html($site_info['status'] ?? ''); ?>
+                                    <?php esc_html_e('URL:', 'cookienod'); ?> <?php echo esc_html($cookienod_site_info['site_url'] ?? ''); ?><br>
+                                    <?php esc_html_e('Plan:', 'cookienod'); ?> <?php echo esc_html(ucfirst($cookienod_site_info['plan'] ?? 'free')); ?><br>
+                                    <?php esc_html_e('Status:', 'cookienod'); ?> <?php echo esc_html($cookienod_site_info['status'] ?? ''); ?>
                                 </p>
                             </td>
                         </tr>
@@ -66,32 +66,32 @@ $compliance = new CookieNod_Compliance();
 
             <!-- Display Settings -->
             <div class="cookienod-card">
-                <h2><?php _e('Display Settings', 'cookienod'); ?></h2>
+                <h2><?php esc_html_e('Display Settings', 'cookienod'); ?></h2>
 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><label for="block_mode"><?php _e('Cookie Blocking Mode', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="block_mode"><?php esc_html_e('Cookie Blocking Mode', 'cookienod'); ?></label></th>
                         <td>
                             <select id="block_mode" name="cookienod_wp_options[block_mode]">
-                                <option value="auto" <?php selected($options['block_mode'] ?? '', 'auto'); ?>>
-                                    <?php _e('Auto (recommended) - Automatically block cookies', 'cookienod'); ?>
+                                <option value="auto" <?php selected($cookienod_options['block_mode'] ?? '', 'auto'); ?>>
+                                    <?php esc_html_e('Auto (recommended) - Automatically block cookies', 'cookienod'); ?>
                                 </option>
-                                <option value="manual-consent" <?php selected($options['block_mode'] ?? '', 'manual-consent'); ?>>
-                                    <?php _e('Manual Consent Attributes - Use data-consent attributes on script tags', 'cookienod'); ?>
+                                <option value="manual-consent" <?php selected($cookienod_options['block_mode'] ?? '', 'manual-consent'); ?>>
+                                    <?php esc_html_e('Manual Consent Attributes - Use data-consent attributes on script tags', 'cookienod'); ?>
                                 </option>
-                                <option value="silent" <?php selected($options['block_mode'] ?? '', 'silent'); ?>>
-                                    <?php _e('Silent Blocking - Server blocks without visible placeholders', 'cookienod'); ?>
+                                <option value="silent" <?php selected($cookienod_options['block_mode'] ?? '', 'silent'); ?>>
+                                    <?php esc_html_e('Silent Blocking - Server blocks without visible placeholders', 'cookienod'); ?>
                                 </option>
-                                <option value="manual" <?php selected($options['block_mode'] ?? '', 'manual'); ?>>
-                                    <?php _e('Blocking with Placeholders - Server blocks with visible placeholder boxes', 'cookienod'); ?>
+                                <option value="manual" <?php selected($cookienod_options['block_mode'] ?? '', 'manual'); ?>>
+                                    <?php esc_html_e('Blocking with Placeholders - Server blocks with visible placeholder boxes', 'cookienod'); ?>
                                 </option>
                             </select>
                             <p class="description">
-                                <?php _e('<strong>Banner Only:</strong> JavaScript handles all cookie blocking (recommended). <strong>Manual Consent:</strong> Use data-consent attributes on script tags for precise control. <strong>Silent:</strong> Server blocks scripts without visible placeholders. <strong>Placeholders:</strong> Server blocks with visible placeholder boxes (legacy mode).', 'cookienod'); ?>
+                                <?php echo wp_kses_post('<strong>Auto:</strong> JavaScript handles all cookie blocking (recommended).<br> <strong>Manual Consent Attributes:</strong> Use data-consent attributes on script tags for precise control.<br><strong>Silent:</strong> Server blocks scripts without visible placeholders.<br><strong>Placeholders:</strong> Server blocks with visible placeholder boxes (legacy mode).', 'cookienod'); ?>
                             </p>
-                            <?php if (($options['block_mode'] ?? 'manual') === 'manual-consent') : ?>
+                            <?php if (($cookienod_options['block_mode'] ?? 'manual') === 'manual-consent') : ?>
                             <div class="cookienod-manual-consent-docs" style="margin-top: 10px; padding: 10px; background: #f0f6fc; border-left: 4px solid #2271b1;">
-                                <p><strong><?php _e('Use data-consent attributes:', 'cookienod'); ?></strong></p>
+                                <p><strong><?php esc_html_e('Use data-consent attributes:', 'cookienod'); ?></strong></p>
                                 <code style="display: block; padding: 8px; background: #fff; margin: 5px 0; font-size: 12px;">
                                     &lt;script data-consent="analytics" src="ga.js"&gt;&lt;/script&gt;<br>
                                     &lt;script data-consent="analytics,marketing" src="tracking.js"&gt;&lt;/script&gt;<br>
@@ -103,41 +103,41 @@ $compliance = new CookieNod_Compliance();
                     </tr>
 
                     <tr>
-                        <th scope="row"><label for="excluded_scripts"><?php _e('Excluded Scripts', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="excluded_scripts"><?php esc_html_e('Excluded Scripts', 'cookienod'); ?></label></th>
                         <td>
-                            <textarea id="excluded_scripts" name="cookienod_wp_options[excluded_scripts]" rows="4" class="large-text code" placeholder="*google-analytics.com*&#10;*googletagmanager.com*&#10;*facebook.com/tr*"><?php echo esc_textarea($options['excluded_scripts'] ?? ''); ?></textarea>
+                            <textarea id="excluded_scripts" name="cookienod_wp_options[excluded_scripts]" rows="4" class="large-text code" placeholder="*google-analytics.com*&#10;*googletagmanager.com*&#10;*facebook.com/tr*"><?php echo esc_textarea($cookienod_options['excluded_scripts'] ?? ''); ?></textarea>
                             <p class="description">
-                                <?php _e('Enter script URL patterns to exclude (one per line). Use * for wildcards. Example: *google-analytics.com*', 'cookienod'); ?>
+                                <?php esc_html_e('Enter script URL patterns to exclude (one per line). Use * for wildcards. Example: *google-analytics.com*', 'cookienod'); ?>
                             </p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><label for="banner_position"><?php _e('Banner Position', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="banner_position"><?php esc_html_e('Banner Position', 'cookienod'); ?></label></th>
                         <td>
                             <select id="banner_position" name="cookienod_wp_options[banner_position]">
-                                <option value="bottom" <?php selected($options['banner_position'] ?? 'bottom', 'bottom'); ?>>
-                                    <?php _e('Bottom Banner', 'cookienod'); ?>
+                                <option value="bottom" <?php selected($cookienod_options['banner_position'] ?? 'bottom', 'bottom'); ?>>
+                                    <?php esc_html_e('Bottom Banner', 'cookienod'); ?>
                                 </option>
-                                <option value="top" <?php selected($options['banner_position'] ?? '', 'top'); ?>>
-                                    <?php _e('Top Banner', 'cookienod'); ?>
+                                <option value="top" <?php selected($cookienod_options['banner_position'] ?? '', 'top'); ?>>
+                                    <?php esc_html_e('Top Banner', 'cookienod'); ?>
                                 </option>
-                                <option value="center" <?php selected($options['banner_position'] ?? '', 'center'); ?>>
-                                    <?php _e('Center Modal', 'cookienod'); ?>
+                                <option value="center" <?php selected($cookienod_options['banner_position'] ?? '', 'center'); ?>>
+                                    <?php esc_html_e('Center Modal', 'cookienod'); ?>
                                 </option>
                             </select>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><label for="banner_theme"><?php _e('Banner Theme', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="banner_theme"><?php esc_html_e('Banner Theme', 'cookienod'); ?></label></th>
                         <td>
                             <select id="banner_theme" name="cookienod_wp_options[banner_theme]">
-                                <option value="light" <?php selected($options['banner_theme'] ?? 'light', 'light'); ?>>
-                                    <?php _e('Light', 'cookienod'); ?>
+                                <option value="light" <?php selected($cookienod_options['banner_theme'] ?? 'light', 'light'); ?>>
+                                    <?php esc_html_e('Light', 'cookienod'); ?>
                                 </option>
-                                <option value="dark" <?php selected($options['banner_theme'] ?? '', 'dark'); ?>>
-                                    <?php _e('Dark', 'cookienod'); ?>
+                                <option value="dark" <?php selected($cookienod_options['banner_theme'] ?? '', 'dark'); ?>>
+                                    <?php esc_html_e('Dark', 'cookienod'); ?>
                                 </option>
                             </select>
                         </td>
@@ -147,103 +147,103 @@ $compliance = new CookieNod_Compliance();
 
             <!-- Banner Text Settings -->
             <div class="cookienod-card">
-                <h2><?php _e('Banner Text', 'cookienod'); ?></h2>
-                <p class="description"><?php _e('Customize the text displayed on the cookie consent banner.', 'cookienod'); ?></p>
+                <h2><?php esc_html_e('Banner Text', 'cookienod'); ?></h2>
+                <p class="description"><?php esc_html_e('Customize the text displayed on the cookie consent banner.', 'cookienod'); ?></p>
 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><label for="banner_title"><?php _e('Banner Title', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="banner_title"><?php esc_html_e('Banner Title', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="banner_title" name="cookienod_wp_options[banner_title]"
-                                   value="<?php echo esc_attr($options['banner_title'] ?? __('Cookie Preferences', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['banner_title'] ?? esc_html__('Cookie Preferences', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="banner_description"><?php _e('Banner Description', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="banner_description"><?php esc_html_e('Banner Description', 'cookienod'); ?></label></th>
                         <td>
                             <textarea id="banner_description" name="cookienod_wp_options[banner_description]"
-                                      rows="2" class="large-text"><?php echo esc_textarea($options['banner_description'] ?? __('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod')); ?></textarea>
+                                      rows="2" class="large-text"><?php echo esc_textarea($cookienod_options['banner_description'] ?? esc_html__('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod')); ?></textarea>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="btn_accept"><?php _e('Accept All Button', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="btn_accept"><?php esc_html_e('Accept All Button', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="btn_accept" name="cookienod_wp_options[btn_accept]"
-                                   value="<?php echo esc_attr($options['btn_accept'] ?? __('Accept All', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['btn_accept'] ?? esc_html__('Accept All', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="btn_reject"><?php _e('Reject Button', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="btn_reject"><?php esc_html_e('Reject Button', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="btn_reject" name="cookienod_wp_options[btn_reject]"
-                                   value="<?php echo esc_attr($options['btn_reject'] ?? __('Reject', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['btn_reject'] ?? esc_html__('Reject', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="btn_customize"><?php _e('Customize Button', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="btn_customize"><?php esc_html_e('Customize Button', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="btn_customize" name="cookienod_wp_options[btn_customize]"
-                                   value="<?php echo esc_attr($options['btn_customize'] ?? __('Customize', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['btn_customize'] ?? esc_html__('Customize', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="btn_save"><?php _e('Save Preferences Button', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="btn_save"><?php esc_html_e('Save Preferences Button', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="btn_save" name="cookienod_wp_options[btn_save]"
-                                   value="<?php echo esc_attr($options['btn_save'] ?? __('Save Preferences', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['btn_save'] ?? esc_html__('Save Preferences', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="settings_title"><?php _e('Settings Modal Title', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="settings_title"><?php esc_html_e('Settings Modal Title', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="settings_title" name="cookienod_wp_options[settings_title]"
-                                   value="<?php echo esc_attr($options['settings_title'] ?? __('Cookie Settings', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['settings_title'] ?? esc_html__('Cookie Settings', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="category_necessary"><?php _e('Necessary Category Label', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="category_necessary"><?php esc_html_e('Necessary Category Label', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="category_necessary" name="cookienod_wp_options[category_necessary]"
-                                   value="<?php echo esc_attr($options['category_necessary'] ?? __('Necessary', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['category_necessary'] ?? esc_html__('Necessary', 'cookienod')); ?>"
                                    class="regular-text" />
-                            <p class="description"><?php _e('Label for essential cookies category', 'cookienod'); ?></p>
+                            <p class="description"><?php esc_html_e('Label for essential cookies category', 'cookienod'); ?></p>
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="category_functional"><?php _e('Functional Category Label', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="category_functional"><?php esc_html_e('Functional Category Label', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="category_functional" name="cookienod_wp_options[category_functional]"
-                                   value="<?php echo esc_attr($options['category_functional'] ?? __('Functional', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['category_functional'] ?? esc_html__('Functional', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="category_analytics"><?php _e('Analytics Category Label', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="category_analytics"><?php esc_html_e('Analytics Category Label', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="category_analytics" name="cookienod_wp_options[category_analytics]"
-                                   value="<?php echo esc_attr($options['category_analytics'] ?? __('Analytics', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['category_analytics'] ?? esc_html__('Analytics', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="category_marketing"><?php _e('Marketing Category Label', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="category_marketing"><?php esc_html_e('Marketing Category Label', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="category_marketing" name="cookienod_wp_options[category_marketing]"
-                                   value="<?php echo esc_attr($options['category_marketing'] ?? __('Marketing', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['category_marketing'] ?? esc_html__('Marketing', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="label_required"><?php _e('Required Badge', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="label_required"><?php esc_html_e('Required Badge', 'cookienod'); ?></label></th>
                         <td>
                             <input type="text" id="label_required" name="cookienod_wp_options[label_required]"
-                                   value="<?php echo esc_attr($options['label_required'] ?? __('Required', 'cookienod')); ?>"
+                                   value="<?php echo esc_attr($cookienod_options['label_required'] ?? esc_html__('Required', 'cookienod')); ?>"
                                    class="regular-text" />
                         </td>
                     </tr>
@@ -252,45 +252,45 @@ $compliance = new CookieNod_Compliance();
 
             <!-- Compliance Settings -->
             <div class="cookienod-card">
-                <h2><?php _e('Compliance Settings', 'cookienod'); ?></h2>
+                <h2><?php esc_html_e('Compliance Settings', 'cookienod'); ?></h2>
 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><?php _e('Auto-Detect Law', 'cookienod'); ?></th>
+                        <th scope="row"><?php esc_html_e('Auto-Detect Law', 'cookienod'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="cookienod_wp_options[auto_detect_law]"
-                                       value="1" <?php checked($options['auto_detect_law'] ?? false); ?> />
-                                <?php _e('Automatically detect applicable law based on visitor location (requires GeoIP)', 'cookienod'); ?>
+                                       value="1" <?php checked($cookienod_options['auto_detect_law'] ?? false); ?> />
+                                <?php esc_html_e('Automatically detect applicable law based on visitor location (requires GeoIP)', 'cookienod'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><label for="regulation"><?php _e('Default Regulation', 'cookienod'); ?></label></th>
+                        <th scope="row"><label for="regulation"><?php esc_html_e('Default Regulation', 'cookienod'); ?></label></th>
                         <td>
                             <select id="regulation" name="cookienod_wp_options[regulation]">
-                                <?php foreach ($compliance->get_all_regulations() as $key => $reg) : ?>
-                                    <option value="<?php echo esc_attr($key); ?>"
-                                            <?php selected($options['regulation'] ?? 'gdpr', $key); ?>>
-                                        <?php echo esc_html($reg['name']); ?> -
-                                        <?php echo esc_html($reg['full_name']); ?>
+                                <?php foreach ($cookienod_compliance->get_all_regulations() as $cookienod_key => $cookienod_reg) : ?>
+                                    <option value="<?php echo esc_attr($cookienod_key); ?>"
+                                            <?php selected($cookienod_options['regulation'] ?? 'gdpr', $cookienod_key); ?>>
+                                        <?php echo esc_html($cookienod_reg['name']); ?> -
+                                        <?php echo esc_html($cookienod_reg['full_name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                             <p class="description">
-                                <?php _e('Used when auto-detect is disabled or GeoIP is unavailable.', 'cookienod'); ?>
+                                <?php esc_html_e('Used when auto-detect is disabled or GeoIP is unavailable.', 'cookienod'); ?>
                             </p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php _e('Consent Logging', 'cookienod'); ?></th>
+                        <th scope="row"><?php esc_html_e('Consent Logging', 'cookienod'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="cookienod_wp_options[log_consent]"
-                                       value="1" <?php checked($options['log_consent'] ?? true); ?> />
-                                <?php _e('Log user consent choices for compliance auditing', 'cookienod'); ?>
+                                       value="1" <?php checked($cookienod_options['log_consent'] ?? true); ?> />
+                                <?php esc_html_e('Log user consent choices for compliance auditing', 'cookienod'); ?>
                             </label>
                         </td>
                     </tr>
@@ -299,66 +299,66 @@ $compliance = new CookieNod_Compliance();
 
             <!-- Google Consent Mode Settings -->
             <div class="cookienod-card">
-                <h2><?php _e('Google Consent Mode v2', 'cookienod'); ?></h2>
+                <h2><?php esc_html_e('Google Consent Mode v2', 'cookienod'); ?></h2>
                 <p class="description">
-                    <?php _e('Integrates with Google Tag Manager and Google Analytics for consent-based data collection. Required for compliance with Google\'s EU user consent policy.', 'cookienod'); ?>
+                    <?php esc_html_e('Integrates with Google Tag Manager and Google Analytics for consent-based data collection. Required for compliance with Google\'s EU user consent policy.', 'cookienod'); ?>
                     <a href="https://support.google.com/analytics/answer/9976101" target="_blank">
-                        <?php _e('Learn more', 'cookienod'); ?>
+                        <?php esc_html_e('Learn more', 'cookienod'); ?>
                     </a>
                 </p>
 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><?php _e('Enable Consent Mode', 'cookienod'); ?></th>
+                        <th scope="row"><?php esc_html_e('Enable Consent Mode', 'cookienod'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="cookienod_wp_options[enable_google_consent_mode]"
-                                       value="1" <?php checked($options['enable_google_consent_mode'] ?? false); ?> />
-                                <?php _e('Enable Google Consent Mode v2 integration', 'cookienod'); ?>
+                                       value="1" <?php checked($cookienod_options['enable_google_consent_mode'] ?? false); ?> />
+                                <?php esc_html_e('Enable Google Consent Mode v2 integration', 'cookienod'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php _e('GTM Integration', 'cookienod'); ?></th>
+                        <th scope="row"><?php esc_html_e('GTM Integration', 'cookienod'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="cookienod_wp_options[gcm_enable_gtm]"
-                                       value="1" <?php checked($options['gcm_enable_gtm'] ?? true); ?> />
-                                <?php _e('Pass consent state to Google Tag Manager dataLayer', 'cookienod'); ?>
+                                       value="1" <?php checked($cookienod_options['gcm_enable_gtm'] ?? true); ?> />
+                                <?php esc_html_e('Pass consent state to Google Tag Manager dataLayer', 'cookienod'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php _e('Redact Data', 'cookienod'); ?></th>
+                        <th scope="row"><?php esc_html_e('Redact Data', 'cookienod'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="cookienod_wp_options[gcm_redact_ads_data]"
-                                       value="1" <?php checked($options['gcm_redact_ads_data'] ?? true); ?> />
-                                <?php _e('Redact advertising data when marketing consent is denied', 'cookienod'); ?>
+                                       value="1" <?php checked($cookienod_options['gcm_redact_ads_data'] ?? true); ?> />
+                                <?php esc_html_e('Redact advertising data when marketing consent is denied', 'cookienod'); ?>
                             </label>
                         </td>
                     </tr>
                 </table>
 
-                <h3><?php _e('Consent Types', 'cookienod'); ?></h3>
+                <h3><?php esc_html_e('Consent Types', 'cookienod'); ?></h3>
                 <table class="widefat striped">
                     <thead>
                         <tr>
-                            <th><?php _e('Type', 'cookienod'); ?></th>
-                            <th><?php _e('Category', 'cookienod'); ?></th>
-                            <th><?php _e('Description', 'cookienod'); ?></th>
-                            <th><?php _e('v2 Only', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Type', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Category', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('Description', 'cookienod'); ?></th>
+                            <th><?php esc_html_e('v2 Only', 'cookienod'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($gcm->get_consent_types_documentation() as $doc) : ?>
+                        <?php foreach ($cookienod_gcm->get_consent_types_documentation() as $cookienod_doc) : ?>
                             <tr>
-                                <td><code><?php echo esc_html($doc['consent_type']); ?></code></td>
-                                <td><?php echo esc_html(ucfirst($doc['category'])); ?></td>
-                                <td><?php echo esc_html($doc['description']); ?></td>
-                                <td><?php echo $doc['v2_only'] ? 'âœ“' : ''; ?></td>
+                                <td><code><?php echo esc_html($cookienod_doc['consent_type']); ?></code></td>
+                                <td><?php echo esc_html(ucfirst($cookienod_doc['category'])); ?></td>
+                                <td><?php echo esc_html($cookienod_doc['description']); ?></td>
+                                <td><?php echo $cookienod_doc['v2_only'] ? esc_html('✓') : ''; ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

@@ -1,14 +1,14 @@
 === CookieNod - Cookie Consent & Scanner ===
 Contributors: cookienod
-Tags: cookie, consent, gdpr, ccpa, privacy, compliance, google consent mode, cookie banner, woocommerce, ab testing, elementor
+Tags: cookie consent, gdpr, ccpa, privacy, cookie banner
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-GDPR/CCPA compliant cookie consent manager with JavaScript-based cookie scanning, Google Consent Mode v2, WooCommerce integration, A/B testing, automatic policy generation, and compatibility with Elementor, Elementor Pro, Gravity Forms, and Contact Form 7.
+GDPR/CCPA compliant cookie consent manager with cookie scanning, Google Consent Mode v2, WooCommerce integration, A/B testing, and policy generation.
 
 == Description ==
 
@@ -20,7 +20,7 @@ CookieNod is a powerful cookie consent and management solution for WordPress, de
 * **JavaScript Cookie Scanning**: Real browser scanner detects and categorizes cookies as visitors browse
 * **Google Consent Mode v2**: Full integration with Google Analytics 4 and Google Tag Manager
 * **Four Blocking Modes**:
-  * **Banner Only** (Recommended) - JavaScript handles cookie blocking, clean UI
+  * **Auto** (Recommended) - JavaScript handles cookie blocking, clean UI
   * **Manual Consent Attributes** - Use data-consent attributes on scripts for precise control
   * **Silent Blocking** - Server-side blocking without visible placeholders
   * **Blocking with Placeholders** - Server-side with visible placeholder boxes
@@ -43,7 +43,7 @@ CookieNod is a powerful cookie consent and management solution for WordPress, de
 
 **Blocking Modes Explained:**
 
-**Banner Only (Recommended)**
+**Auto (Recommended)**
 * Shows the consent banner
 * JavaScript SDK handles cookie blocking
 * No visible placeholders or layout changes
@@ -240,10 +240,21 @@ Yes! The "Banner Only" mode works seamlessly with caching plugins like WP Rocket
 * Initial release
 * Multi-region compliance support (20+ regulations)
 * Google Consent Mode v2 integration
-* Three blocking modes: Banner Only, Silent Blocking, and Placeholders
-* JavaScript-based cookie scanning
-* Script blocking functionality
-* Consent logging and export
+* Four blocking modes: Banner Only, Manual Consent Attributes, Silent Blocking, and Placeholders
+* JavaScript-based cookie scanning and categorization
+* Script blocking with data-consent attributes
+* Consent logging with CSV export
+* Custom CSS Editor with live preview and style presets (Minimal, Rounded, Glassmorphism, Brutalist, Elegant)
+* A/B testing for banner optimization
+* Cookie Policy Generator with multiple templates (GDPR, CCPA, Combined, Simple)
+* WooCommerce integration with consent checkboxes
+* Elementor, Gravity Forms, and Contact Form 7 compatibility
+* WordPress directory compliance:
+  * All scripts use wp_enqueue_script() and wp_add_inline_script()
+  * All styles use wp_enqueue_style() and wp_add_inline_style()
+  * Human-readable source files included
+  * External services documented with Terms/Privacy links
+  * Proper data sanitization and escaping throughout
 
 == Upgrade Notice ==
 
@@ -262,15 +273,68 @@ CookieNod processes the following data:
 
 The plugin loads a remote JavaScript file from `https://cookienod.com/cookienod.min.js` after a valid API key is verified. API key validation and site configuration requests are sent to `https://api.cookienod.com`. Consent logging and cookie detection requests are sent to your own site through WordPress `admin-ajax.php`.
 
-== Third Party Services ==
+== External Services ==
 
-This plugin connects to the following external services:
+This plugin connects to the CookieNod external service to provide cookie consent management functionality. An API key is required to use these services.
 
-* **CookieNod API** (`https://api.cookienod.com`): Used for API key validation and site configuration
-* **CookieNod Frontend Script** (`https://cookienod.com/cookienod.min.js`): Used to render and manage the consent banner after a valid API key is verified
-* **Google Services**: Optional integration with Google Analytics and Google Tag Manager when enabled by the site owner
+**CookieNod API and Frontend Script**
+
+The plugin requires the CookieNod service (provided by CookieNod Team) to function. This service is used for:
+
+* **API Key Validation**: Verifying your license key is valid
+* **Site Configuration**: Obtaining your site's consent banner settings
+* **Frontend Banner Rendering**: Loading the JavaScript that displays and manages the consent banner
+
+**What data is sent:**
+
+* Your **API Key** - sent when verifying the key and loading site configuration
+* Your **Site URL** - sent to validate the API key is being used on the correct domain
+* **Current page URL** - sent when loading the frontend script to render the banner
+
+**When data is sent:**
+
+* API key validation: When you enter/verify your API key in settings
+* Site configuration: When the plugin loads your banner settings
+* Frontend script: On every page load for visitors (only if a valid API key is configured)
+
+**Service provider:** CookieNod Team
+
+* **Terms of Service:** https://cookienod.com/terms
+* **Privacy Policy:** https://cookienod.com/privacy
+
+**Google Services (Optional)**
+
+If you enable Google Consent Mode v2, the plugin integrates with Google Analytics and Google Tag Manager. This is optional and disabled by default.
+
+* **Google Analytics Terms:** https://marketingplatform.google.com/about/analytics/terms/
+* **Google Privacy Policy:** https://policies.google.com/privacy
 
 
 == Credits ==
 
 Developed by the CookieNod team.
+
+== Source Code and Build Process ==
+
+This plugin follows WordPress guidelines for human-readable code. All JavaScript and CSS files are distributed in their original, unminified source form.
+
+**Source Code Repository:** https://github.com/cookienod/cookienod-wordpress
+
+**Build Process:**
+No build process is required. The plugin uses vanilla JavaScript and CSS files that are human-readable and can be studied, modified, and extended directly. All inline scripts and styles are output using WordPress's `wp_enqueue_script()`, `wp_enqueue_style()`, `wp_add_inline_script()`, and `wp_add_inline_style()` functions.
+
+**File Structure:**
+
+*JavaScript:*
+* `assets/js/admin.js` - Admin JavaScript (human-readable source, no build)
+
+*CSS:*
+* `assets/css/admin.css` - Admin styles (human-readable source, no build)
+* `assets/css/banner-preview-source.css` - Banner preview CSS for admin JS preview function
+* `assets/css/banner-preview.css` - CSS editor iframe preview styles
+* `assets/css/custom-css-editor.css` - Custom CSS editor admin page styles
+* `assets/css/policy-generator.css` - Policy generator page styles
+* `assets/css/script-blocker.css` - Script blocker placeholder styles
+
+**Developer Notes:**
+If you modify this plugin, simply edit the source files directly. No compilation step is needed.

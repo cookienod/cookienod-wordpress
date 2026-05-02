@@ -162,72 +162,67 @@ class CookieNod_Custom_CSS {
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }',
             ),
-            'dark' => array(
-                'name' => __('Dark Mode', 'cookienod'),
+            'glassmorphism' => array(
+                'name' => __('Glassmorphism', 'cookienod'),
                 'css' => '#cs-consent-banner {
-    background: #1a1a2e;
-    color: #ffffff;
-    border-top-color: #30354d;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+#cs-consent-banner.dark {
+    background: rgba(31, 41, 55, 0.85) !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
 }
 
 #cs-consent-banner .cs-banner-title,
 #cs-consent-banner .cs-banner-description {
-    color: #ffffff;
+    color: inherit;
 }
 
 #cs-consent-banner .cs-btn {
-    border-color: #ffffff;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 8px;
+    font-weight: 500;
 }
 
 #cs-consent-banner .cs-btn-primary {
-    background: #e94560;
-    color: #ffffff;
-    border-color: #e94560;
+    background: rgba(37, 99, 235, 0.9) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(37, 99, 235, 0.5) !important;
 }
 
 #cs-consent-banner .cs-btn-secondary {
-    background: transparent;
-    color: #ffffff;
-    border: 1px solid #ffffff;
+    background: rgba(243, 244, 246, 0.8) !important;
+    color: #1f2937 !important;
+    border: 1px solid rgba(209, 213, 219, 0.5) !important;
+}
+
+#cs-consent-banner.dark .cs-btn-secondary {
+    background: rgba(75, 85, 99, 0.5) !important;
+    color: #f9fafb !important;
 }
 
 #cs-consent-banner .cs-btn-tertiary {
-    background: #16213e;
-    color: #ffffff;
-    border: 1px solid #30354d;
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(209, 213, 219, 0.3) !important;
 }
 
-#cs-detailed-settings {
-    background: #1a1a2e;
-    color: #ffffff;
-}
-
-#cs-detailed-settings .cs-settings-content {
-    background: #16213e;
-    color: #ffffff;
-}',
-            ),
-            'glassmorphism' => array(
-                'name' => __('Glassmorphism', 'cookienod'),
-                'css' => '#cs-consent-banner {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-}
-
-#cs-consent-banner .cs-btn-primary {
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(4px);
+#cs-consent-banner.dark .cs-btn-tertiary {
+    background: rgba(55, 65, 81, 0.5) !important;
+    color: #f9fafb !important;
 }
 
 #cs-retrigger-btn {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(209, 213, 219, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }',
             ),
             'brutalist' => array(
@@ -296,7 +291,7 @@ class CookieNod_Custom_CSS {
     }
 
     /**
-     * Output custom CSS on frontend
+     * Output custom CSS on frontend using wp_add_inline_style
      */
     public function output_custom_css() {
         if (!$this->has_valid_api_key()) {
@@ -313,10 +308,12 @@ class CookieNod_Custom_CSS {
         $validated_css = $this->validate_css($custom_css);
 
         if (!empty($validated_css)) {
-            echo "\n<!-- CookieNod Custom CSS -->\n";
-            echo "<style type=\"text/css\">\n";
-            echo esc_html($validated_css);
-            echo "\n</style>\n";
+            // Register a handle if not already done, then add inline CSS
+            if (!wp_style_is('cookienod-custom-frontend', 'registered')) {
+                wp_register_style('cookienod-custom-frontend', false, [], COOKIENOD_VERSION);
+            }
+            wp_enqueue_style('cookienod-custom-frontend');
+            wp_add_inline_style('cookienod-custom-frontend', $validated_css);
         }
     }
 
@@ -373,12 +370,77 @@ class CookieNod_Custom_CSS {
             wp_send_json_error('Unauthorized');
         }
 
-        $css = sanitize_textarea_field($_POST['css'] ?? '');
+        $css = sanitize_textarea_field(wp_unslash($_POST['css'] ?? ''));
         $validated = $this->validate_css($css);
 
         wp_send_json_success(array(
             'css' => $validated,
             'valid' => !empty($validated),
+        ));
+    }
+
+    /**
+     * AJAX generate preview HTML
+     */
+    public function ajax_generate_preview() {
+        check_ajax_referer('cookienod_wp_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        // Get parameters
+        $position = sanitize_text_field(wp_unslash($_POST['position'] ?? 'bottom'));
+        $banner_theme = sanitize_text_field(wp_unslash($_POST['banner_theme'] ?? 'light'));
+        $custom_css = sanitize_textarea_field(wp_unslash($_POST['custom_css'] ?? ''));
+
+        // Validate CSS
+        $validated_css = $this->validate_css($custom_css);
+
+        // Load banner-preview.css from file (human-readable source)
+        $css_file_path = COOKIENOD_PLUGIN_DIR . 'assets/css/banner-preview.css';
+        $banner_css = '';
+        if (file_exists($css_file_path)) {
+            $banner_css = file_get_contents($css_file_path);
+        }
+
+        // Build the preview HTML
+        $preview_html = '<!DOCTYPE html>' . "\n";
+        $preview_html .= '<html>' . "\n";
+        $preview_html .= '<head>' . "\n";
+        $preview_html .= '    <meta charset="UTF-8">' . "\n";
+        $preview_html .= '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' . "\n";
+        $preview_html .= '    <title>' . esc_html__('CookieNod Preview', 'cookienod') . '</title>' . "\n";
+        $preview_html .= '    <style type="text/css">' . "\n";
+        $preview_html .= '        ' . $banner_css . "\n";
+        if (!empty($validated_css)) {
+            $preview_html .= '        ' . $validated_css . "\n";
+        }
+        $preview_html .= '    </style>' . "\n";
+        $preview_html .= '</head>' . "\n";
+        $preview_html .= '<body>' . "\n";
+        $preview_html .= '    <div class="preview-container">' . "\n";
+        $preview_html .= '        <div class="preview-content">' . "\n";
+        $preview_html .= '            <h1>' . esc_html__('Your Website', 'cookienod') . '</h1>' . "\n";
+        $preview_html .= '            <p>' . esc_html__('This is a preview of how the consent banner will appear on your site.', 'cookienod') . '</p>' . "\n";
+        $preview_html .= '        </div>' . "\n";
+        $preview_html .= '        <div id="cs-consent-banner" class="position-' . esc_attr($position) . ' ' . esc_attr($banner_theme) . '">' . "\n";
+        $preview_html .= '            <div class="cs-banner-content">' . "\n";
+        $preview_html .= '                <h3 class="cs-banner-title">' . esc_html__('Cookie Preferences', 'cookienod') . '</h3>' . "\n";
+        $preview_html .= '                <p class="cs-banner-description">' . esc_html__('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod') . '</p>' . "\n";
+        $preview_html .= '                <div class="cs-banner-actions">' . "\n";
+        $preview_html .= '                    <button class="cs-btn cs-btn-secondary">' . esc_html__('Reject', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                    <button class="cs-btn cs-btn-tertiary">' . esc_html__('Customize', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                    <button class="cs-btn cs-btn-primary">' . esc_html__('Accept All', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                </div>' . "\n";
+        $preview_html .= '            </div>' . "\n";
+        $preview_html .= '        </div>' . "\n";
+        $preview_html .= '    </div>' . "\n";
+        $preview_html .= '</body>' . "\n";
+        $preview_html .= '</html>';
+
+        wp_send_json_success(array(
+            'preview_html' => $preview_html,
         ));
     }
 
@@ -392,7 +454,7 @@ class CookieNod_Custom_CSS {
             wp_send_json_error('Unauthorized');
         }
 
-        $css = sanitize_textarea_field($_POST['css'] ?? '');
+        $css = sanitize_textarea_field(wp_unslash($_POST['css'] ?? ''));
         $validated = $this->validate_css($css);
 
         // Parse CSS to find any removed rules
@@ -448,125 +510,55 @@ class CookieNod_Custom_CSS {
 
     /**
      * Generate preview HTML
+     * Note: This outputs a complete HTML document for iframe preview.
+     * CSS is loaded via wp_enqueue_style for human-readable source compliance.
      */
     public function generate_preview_html() {
         $position = $this->options['banner_position'] ?? 'bottom';
         $custom_css = $this->options['custom_css'] ?? '';
         $validated_css = $this->validate_css($custom_css);
-
+        $banner_theme = $this->options['banner_theme'] ?? 'light';
         ?>
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title><?php _e('CookieNod Preview', 'cookienod'); ?></title>
-            <style>
-                body {
-                    margin: 0;
-                    padding: 20px;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    background: #f0f0f0;
-                    min-height: 100vh;
-                }
-
-                .preview-container {
-                    background: #fff;
-                    min-height: 600px;
-                    position: relative;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    overflow: hidden;
-                }
-
-                .preview-content {
-                    padding: 40px;
-                }
-
-                #cs-consent-banner {
-                    left: 0;
-                    right: 0;
-                    background: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#1f2937' : '#fff'; ?>;
-                    border-top: 1px solid <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#374151' : '#ddd'; ?>;
-                    padding: 20px;
-                    box-shadow: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '0 -2px 10px rgba(0,0,0,0.25)' : '0 -2px 10px rgba(0,0,0,0.1)'; ?>;
-                    color: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#f9fafb' : '#1d2327'; ?>;
-                }
-
-                #cs-consent-banner.position-top {
-                    position: absolute;
-                    top: 0;
-                }
-
-                #cs-consent-banner.position-bottom {
-                    position: absolute;
-                    bottom: 0;
-                }
-
-                #cs-consent-banner .cs-banner-title {
-                    margin: 0 0 8px;
-                    font-size: 20px;
-                    color: inherit;
-                }
-
-                #cs-consent-banner .cs-banner-description {
-                    margin: 0;
-                    color: inherit;
-                }
-
-                #cs-consent-banner .cs-banner-actions {
-                    margin-top: 15px;
-                    display: flex;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                }
-
-                #cs-consent-banner .cs-btn {
-                    padding: 8px 16px;
-                    border: 1px solid <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#4b5563' : '#ccc'; ?>;
-                    background: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#111827' : '#f6f7f7'; ?>;
-                    color: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#f9fafb' : '#1d2327'; ?>;
-                    cursor: pointer;
-                    border-radius: 4px;
-                }
-
-                #cs-consent-banner .cs-btn-primary {
-                    background: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#2563eb' : '#2271b1'; ?>;
-                    color: #fff;
-                    border-color: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#2563eb' : '#2271b1'; ?>;
-                }
-
-                #cs-consent-banner .cs-btn-secondary {
-                    background: transparent;
-                    color: inherit;
-                    border-color: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#9ca3af' : '#ccc'; ?>;
-                }
-
-                #cs-consent-banner .cs-btn-tertiary {
-                    background: <?php echo (($this->options['banner_theme'] ?? 'light') === 'dark') ? '#374151' : '#f0f0f1'; ?>;
-                }
-
-                <?php echo esc_html($validated_css); ?>
-            </style>
+            <title><?php esc_html_e('CookieNod Preview', 'cookienod'); ?></title>
+            <?php
+            // Enqueue preview styles from file (human-readable source)
+            wp_enqueue_style(
+                'cookienod-banner-preview',
+                COOKIENOD_PLUGIN_URL . 'assets/css/banner-preview.css',
+                array(),
+                COOKIENOD_VERSION
+            );
+            // Add custom CSS inline
+            if (!empty($validated_css)) {
+                wp_register_style('cookienod-preview-custom', false, [], COOKIENOD_VERSION);
+                wp_enqueue_style('cookienod-preview-custom');
+                wp_add_inline_style('cookienod-preview-custom', $validated_css);
+            }
+            ?>
         </head>
         <body>
             <div class="preview-container">
                 <div class="preview-content">
-                    <h1><?php _e('Your Website', 'cookienod'); ?></h1>
-                    <p><?php _e('This is a preview of how the consent banner will appear on your site.', 'cookienod'); ?></p>
+                    <h1><?php esc_html_e('Your Website', 'cookienod'); ?></h1>
+                    <p><?php esc_html_e('This is a preview of how the consent banner will appear on your site.', 'cookienod'); ?></p>
                 </div>
 
                 <!-- Banner Preview -->
-                <div id="cs-consent-banner" class="position-<?php echo esc_attr($position); ?>">
+                <div id="cs-consent-banner" class="position-<?php echo esc_attr($position); ?> <?php echo esc_attr($banner_theme); ?>">
                     <div class="cs-banner-content">
-                        <h3 class="cs-banner-title"><?php _e('Cookie Preferences', 'cookienod'); ?></h3>
+                        <h3 class="cs-banner-title"><?php esc_html_e('Cookie Preferences', 'cookienod'); ?></h3>
                         <p class="cs-banner-description">
-                            <?php _e('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod'); ?>
+                            <?php esc_html_e('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod'); ?>
                         </p>
                         <div class="cs-banner-actions">
-                            <button class="cs-btn cs-btn-secondary"><?php _e('Reject', 'cookienod'); ?></button>
-                            <button class="cs-btn cs-btn-tertiary"><?php _e('Customize', 'cookienod'); ?></button>
-                            <button class="cs-btn cs-btn-primary"><?php _e('Accept All', 'cookienod'); ?></button>
+                            <button class="cs-btn cs-btn-secondary"><?php esc_html_e('Reject', 'cookienod'); ?></button>
+                            <button class="cs-btn cs-btn-tertiary"><?php esc_html_e('Customize', 'cookienod'); ?></button>
+                            <button class="cs-btn cs-btn-primary"><?php esc_html_e('Accept All', 'cookienod'); ?></button>
                         </div>
                     </div>
                 </div>

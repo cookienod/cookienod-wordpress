@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Cookienod - Cookie Consent & Scanner
+ * Plugin Name: CookieNod - Cookie Consent & Scanner
  * Plugin URI: https://cookienod.com
  * Description: GDPR/CCPA compliant cookie consent manager with automated cookie scanning and consent controls.
  * Version: 1.0.0

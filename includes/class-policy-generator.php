@@ -189,7 +189,8 @@ class CookieNod_Policy_Generator {
                     '<h2>%s</h2><p>%s</p>',
                     __('Introduction', 'cookienod'),
                     sprintf(
-                        __('This Cookie Policy explains how %s ("we", "us", or "our") uses cookies and similar technologies when you visit our website at %s. This policy is designed to help you understand what cookies are, how we use them, and the choices you have regarding their use.', 'cookienod'),
+                        /* translators: 1: Site name, 2: Site URL */
+                        __('This Cookie Policy explains how %1$s ("we", "us", or "our") uses cookies and similar technologies when you visit our website at %2$s. This policy is designed to help you understand what cookies are, how we use them, and the choices you have regarding their use.', 'cookienod'),
                         esc_html($site_name),
                         esc_url($site_url)
                     )
@@ -317,12 +318,14 @@ class CookieNod_Policy_Generator {
                 );
 
             case 'contact':
+                $contact_email = get_option('admin_email');
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
                     __('Contact Us', 'cookienod'),
                     sprintf(
+                        /* translators: %s: Email address or contact link */
                         __('If you have any questions about our use of cookies or this Cookie Policy, please contact us at %s.', 'cookienod'),
-                        sprintf('<a href="mailto:%s">%s</a>', antispambot(get_option('admin_email')), antispambot(get_option('admin_email')))
+                        sprintf('<a href="mailto:%1$s">%2$s</a>', esc_url('mailto:' . antispambot($contact_email)), esc_html(antispambot($contact_email)))
                     )
                 );
 
@@ -446,7 +449,7 @@ class CookieNod_Policy_Generator {
         }
 
         $page_id = intval($_POST['page_id'] ?? 0);
-        $content = wp_kses_post($_POST['content'] ?? '');
+        $content = wp_kses_post(wp_unslash($_POST['content'] ?? ''));
 
         if (!$page_id) {
             wp_send_json_error('Invalid page ID');
@@ -570,18 +573,18 @@ class CookieNod_Policy_Generator {
         ?>
         <label>
             <input type="checkbox" name="cookienod_is_policy_page" value="1" <?php checked($is_policy_page); ?> />
-            <?php _e('This is a Cookie Policy page', 'cookienod'); ?>
+            <?php esc_html_e('This is a Cookie Policy page', 'cookienod'); ?>
         </label>
 
         <?php if ($is_policy_page) : ?>
-            <p><strong><?php _e('Template:', 'cookienod'); ?></strong> <?php echo esc_html($template); ?></p>
-            <p><strong><?php _e('Created:', 'cookienod'); ?></strong> <?php echo esc_html($created); ?></p>
+            <p><strong><?php esc_html_e('Template:', 'cookienod'); ?></strong> <?php echo esc_html($template); ?></p>
+            <p><strong><?php esc_html_e('Created:', 'cookienod'); ?></strong> <?php echo esc_html($created); ?></p>
             <?php if ($updated) : ?>
-                <p><strong><?php _e('Last Updated:', 'cookienod'); ?></strong> <?php echo esc_html($updated); ?></p>
+                <p><strong><?php esc_html_e('Last Updated:', 'cookienod'); ?></strong> <?php echo esc_html($updated); ?></p>
             <?php endif; ?>
 
             <p>
-                <button type="button" class="button" id="regenerate-policy"><?php _e('Regenerate Policy', 'cookienod'); ?></button>
+                <button type="button" class="button" id="regenerate-policy"><?php esc_html_e('Regenerate Policy', 'cookienod'); ?></button>
             </p>
         <?php endif; ?>
         <?php
@@ -592,7 +595,7 @@ class CookieNod_Policy_Generator {
      */
     public function save_policy_meta_box($post_id) {
         if (!isset($_POST['cookienod_policy_meta_nonce']) ||
-            !wp_verify_nonce($_POST['cookienod_policy_meta_nonce'], 'cookienod_policy_meta')) {
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['cookienod_policy_meta_nonce'])), 'cookienod_policy_meta')) {
             return;
         }
 
@@ -636,6 +639,7 @@ class CookieNod_Policy_Generator {
             return false;
         }
 
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook
         return apply_filters('the_content', $post->post_content);
     }
 }

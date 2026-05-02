@@ -286,7 +286,8 @@ class CookieNod_Compliance {
     private function get_visitor_country() {
         // Try Cloudflare
         if (isset($_SERVER['HTTP_CF_IPCOUNTRY'])) {
-            return sanitize_text_field($_SERVER['HTTP_CF_IPCOUNTRY']);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Country code sanitized
+            return sanitize_text_field(wp_unslash($_SERVER['HTTP_CF_IPCOUNTRY']));
         }
 
         // Try MaxMind if available
@@ -297,7 +298,8 @@ class CookieNod_Compliance {
 
         // Try WP Engine GeoIP
         if (isset($_SERVER['HTTP_X_GEO_COUNTRY'])) {
-            return sanitize_text_field($_SERVER['HTTP_X_GEO_COUNTRY']);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Country code sanitized
+            return sanitize_text_field(wp_unslash($_SERVER['HTTP_X_GEO_COUNTRY']));
         }
 
         return null;
@@ -310,7 +312,8 @@ class CookieNod_Compliance {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
-                $ips = explode(',', sanitize_text_field($_SERVER[$key]));
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- IP addresses sanitized after unslash
+                $ips = explode(',', sanitize_text_field(wp_unslash($_SERVER[$key])));
                 return trim($ips[0]);
             }
         }

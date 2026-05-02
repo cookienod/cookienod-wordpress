@@ -107,8 +107,9 @@ class CookieNod_WooCommerce {
 
         // Add privacy notice
         $privacy_text = $this->options['wc_privacy_notice'] ?? sprintf(
+            /* translators: %s: Privacy Policy page link */
             __('Your personal data will be used to process your order. See our %s for details.', 'cookienod'),
-            '<a href="' . esc_url(get_privacy_policy_url()) . '">' . __('Privacy Policy', 'cookienod') . '</a>'
+            '<a href="' . esc_url(get_privacy_policy_url()) . '">' . esc_html__('Privacy Policy', 'cookienod') . '</a>'
         );
 
         echo '<div class="woocommerce-privacy-policy-text">' . wp_kses_post($privacy_text) . '</div>';
@@ -118,6 +119,7 @@ class CookieNod_WooCommerce {
      * Save marketing consent with order
      */
     public function save_marketing_consent($order_id, $posted_data, $order) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified elsewhere in checkout flow
         if (isset($_POST['cookienod_marketing_consent'])) {
             update_post_meta($order_id, '_cookienod_marketing_consent', 'yes');
 
@@ -131,6 +133,7 @@ class CookieNod_WooCommerce {
         }
 
         // Save analytics consent
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified elsewhere in checkout flow
         if (isset($_POST['cookienod_analytics_consent'])) {
             update_post_meta($order_id, '_cookienod_analytics_consent', 'yes');
         } else {
@@ -142,6 +145,7 @@ class CookieNod_WooCommerce {
      * Save consent during registration
      */
     public function save_registration_consent($customer_id, $new_customer_data, $password_generated) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in WooCommerce registration flow
         if (isset($_POST['cookienod_marketing_consent'])) {
             update_user_meta($customer_id, 'cookienod_marketing_consent', 'yes');
         } else {
@@ -173,11 +177,11 @@ class CookieNod_WooCommerce {
         echo '<div class="cookienod-consent-info" style="margin-top: 10px;">';
         echo '<h4>' . esc_html__('Cookie Consent', 'cookienod') . '</h4>';
         echo '<p><strong>' . esc_html__('Marketing:', 'cookienod') . '</strong> ' .
-             ($marketing === 'yes' ? '✓ ' . __('Consented', 'cookienod') : '✗ ' . __('Not consented', 'cookienod')) .
+             ($marketing === 'yes' ? '✓ ' . esc_html__('Consented', 'cookienod') : '✗ ' . esc_html__('Not consented', 'cookienod')) .
              '</p>';
         if ($analytics) {
             echo '<p><strong>' . esc_html__('Analytics:', 'cookienod') . '</strong> ' .
-                 ($analytics === 'yes' ? '✓ ' . __('Consented', 'cookienod') : '✗ ' . __('Not consented', 'cookienod')) .
+                 ($analytics === 'yes' ? '✓ ' . esc_html__('Consented', 'cookienod') : '✗ ' . esc_html__('Not consented', 'cookienod')) .
                  '</p>';
         }
         echo '</div>';
@@ -317,10 +321,11 @@ class CookieNod_WooCommerce {
      */
     public function save_account_privacy_preferences($user_id) {
         if (!isset($_POST['cookienod_account_preferences_nonce']) ||
-            !wp_verify_nonce($_POST['cookienod_account_preferences_nonce'], 'cookienod_account_preferences')) {
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['cookienod_account_preferences_nonce'])), 'cookienod_account_preferences')) {
             return;
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
         $marketing = isset($_POST['cookienod_marketing_consent_account']) ? 'yes' : 'no';
         update_user_meta($user_id, 'cookienod_marketing_consent', $marketing);
 
@@ -337,13 +342,14 @@ class CookieNod_WooCommerce {
         }
 
         $content = sprintf(
+            /* translators: %s: Privacy Policy page link */
             __('This website uses cookies to process your orders and improve your shopping experience.
             Necessary cookies are required for the cart and checkout to function.
             Functional cookies enable features like saved addresses.
             Analytics cookies help us improve our store.
             Marketing cookies are used to show you relevant offers.
             See our %s for more information.', 'cookienod'),
-            '<a href="' . esc_url(get_privacy_policy_url()) . '">' . __('Privacy Policy', 'cookienod') . '</a>'
+            '<a href="' . esc_url(get_privacy_policy_url()) . '">' . esc_html__('Privacy Policy', 'cookienod') . '</a>'
         );
 
         wp_add_privacy_policy_content(
@@ -367,7 +373,7 @@ class CookieNod_WooCommerce {
             return false;
         }
 
-        $consent = json_decode(sanitize_text_field($_COOKIE['cookienod_consent']), true);
+        $consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
         return isset($consent[$category]) && $consent[$category] === true;
     }
 
@@ -378,7 +384,7 @@ class CookieNod_WooCommerce {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
-                $ips = explode(',', sanitize_text_field($_SERVER[$key]));
+                $ips = explode(',', sanitize_text_field(wp_unslash($_SERVER[$key])));
                 return trim($ips[0]);
             }
         }
