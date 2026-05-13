@@ -50,12 +50,169 @@ class CookieNod_Plugin_Compat {
         add_filter('wpcf7_posted_data', array($this, 'process_cf7_consent'));
         add_action('wpcf7_before_send_mail', array($this, 'log_cf7_consent'));
 
-        // General form integrations
-        add_action('wp_footer', array($this, 'inject_form_scripts'), 100);
+        // General form integrations - enqueue scripts properly
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_form_scripts'));
 
         // AJAX consent check
         add_action('wp_ajax_cookienod_check_consent', array($this, 'ajax_check_consent'));
         add_action('wp_ajax_nopriv_cookienod_check_consent', array($this, 'ajax_check_consent'));
+    }
+
+    /**
+     * Enqueue form integration scripts
+     */
+    public function enqueue_form_scripts() {
+        // Register empty script as placeholder for inline script
+        wp_register_script('cookienod-form-compat', false, array('jquery'), COOKIENOD_VERSION, true);
+        wp_enqueue_script('cookienod-form-compat');
+
+        $inline_script = "
+(function() {
+    'use strict';
+
+    // Get consent status from localStorage (same as cookienod.min.js)
+    function getConsentStatus() {
+        try {
+            var prefs = localStorage.getItem('cs_cookie_prefs');
+            return prefs ? JSON.parse(prefs) : {
+                necessary: true,
+                functional: false,
+                analytics: false,
+                marketing: false
+            };
+        } catch (e) {
+            return {
+                necessary: true,
+                functional: false,
+                analytics: false,
+                marketing: false
+            };
+        }
+    }
+
+    // Check if consent is given for a category
+    function hasConsent(category) {
+        var consent = getConsentStatus();
+        return category === 'necessary' ? true : (consent[category] === true);
+    }
+
+    // Update all form consent fields dynamically
+    function updateFormConsentFields() {
+        var consentData = getConsentStatus();
+
+        // Update Gravity Forms
+        document.querySelectorAll('input[name=\"cookienod_consent_data\"]').forEach(function(field) {
+            field.value = JSON.stringify(consentData);
+        });
+
+        // Update Contact Form 7
+        document.querySelectorAll('input[name=\"cookienod_consent_data\"]').forEach(function(field) {
+            field.value = JSON.stringify(consentData);
+        });
+
+        // Update CF7 consent summary display
+        document.querySelectorAll('.wpcf7-consent-summary[data-cookienod-summary=\"true\"]').forEach(function(summary) {
+            var listItems = summary.querySelectorAll('.cookienod-consent-list li');
+            listItems.forEach(function(li) {
+                var cat = li.getAttribute('data-category');
+                var statusSpan = li.querySelector('.cookienod-status');
+                if (statusSpan && cat) {
+                    var hasCon = (cat === 'necessary') ? true : (consentData[cat] === true);
+                    statusSpan.textContent = hasCon ? '✓' : '✗';
+                    statusSpan.style.color = hasCon ? '#28a745' : '#dc3545';
+                }
+            });
+        });
+    }
+
+    // Handle Elementor widget placeholder buttons
+    function handlePlaceholderButtons() {
+        document.querySelectorAll('.cookienod-give-consent, .cookienod-load-script, .cookienod-load-iframe').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var category = this.getAttribute('data-category') || 'marketing';
+
+                // Update consent in localStorage (triggers cookienod.min.js to reload)
+                try {
+                    var prefs = getConsentStatus();
+                    prefs[category] = true;
+                    localStorage.setItem('cs_cookie_prefs', JSON.stringify(prefs));
+                    localStorage.setItem('cs_consent_given', 'true');
+
+                    // Dispatch event for cookienod.min.js to pick up
+                    window.dispatchEvent(new CustomEvent('cookiePreferencesChanged', {
+                        detail: prefs
+                    }));
+
+                    // Hide the placeholder and show content
+                    var placeholder = this.closest('.cookienod-widget-placeholder, .cookienod-blocked-script, .cookienod-blocked-iframe');
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+
+                    // Reload scripts marked with data-category
+                    var scripts = document.querySelectorAll('script[type=\"text/cookienod\"][data-category=\"' + category + '\"]');
+                    scripts.forEach(function(script) {
+                        var encodedScript = script.getAttribute('data-script');
+                        if (encodedScript) {
+                            try {
+                                var decoded = atob(encodedScript);
+                                var temp = document.createElement('div');
+                                temp.innerHTML = decoded;
+                                var newScript = temp.firstChild;
+                                if (newScript) {
+                                    newScript.type = 'text/javascript';
+                                    document.head.appendChild(newScript);
+                                }
+                                script.remove();
+                            } catch (err) {
+                                console.error('CookieNod: Failed to load script', err);
+                            }
+                        }
+                    });
+
+                    // Reload iframes
+                    var iframes = document.querySelectorAll('.cookienod-blocked-iframe[data-src]');
+                    iframes.forEach(function(iframeContainer) {
+                        var src = iframeContainer.getAttribute('data-src');
+                        if (src) {
+                            iframeContainer.innerHTML = '<iframe src=\"' + src + '\" style=\"width:100%;height:100%;border:none;\"></iframe>';
+                        }
+                    });
+
+                    // Log consent if needed
+                    updateFormConsentFields();
+                } catch (err) {
+                    console.error('CookieNod: Error giving consent', err);
+                }
+            });
+        });
+    }
+
+    // Listen for consent changes
+    window.addEventListener('cookienod:consentChanged', updateFormConsentFields);
+    window.addEventListener('cookiePreferencesChanged', updateFormConsentFields);
+
+    // Initialize on DOM ready and after Elementor renders
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFormConsentFields();
+            handlePlaceholderButtons();
+        });
+    } else {
+        updateFormConsentFields();
+        handlePlaceholderButtons();
+    }
+
+    // Elementor frontend render hook
+    if (window.elementorFrontend) {
+        window.elementorFrontend.hooks.addAction('frontend/element_ready/widget', function() {
+            handlePlaceholderButtons();
+        });
+    }
+})();";
+
+        wp_add_inline_script('cookienod-form-compat', $inline_script, 'after');
     }
 
     /**
@@ -414,160 +571,6 @@ class CookieNod_Plugin_Compat {
         }
 
         return $widgets;
-    }
-
-    /**
-     * Inject form integration scripts
-     */
-    public function inject_form_scripts() {
-        ?>
-        <script type="text/javascript">
-        (function() {
-            'use strict';
-
-            // Get consent status from localStorage (same as cookienod.min.js)
-            function getConsentStatus() {
-                try {
-                    var prefs = localStorage.getItem('cs_cookie_prefs');
-                    return prefs ? JSON.parse(prefs) : {
-                        necessary: true,
-                        functional: false,
-                        analytics: false,
-                        marketing: false
-                    };
-                } catch (e) {
-                    return {
-                        necessary: true,
-                        functional: false,
-                        analytics: false,
-                        marketing: false
-                    };
-                }
-            }
-
-            // Check if consent is given for a category
-            function hasConsent(category) {
-                var consent = getConsentStatus();
-                return category === 'necessary' ? true : (consent[category] === true);
-            }
-
-            // Update all form consent fields dynamically
-            function updateFormConsentFields() {
-                var consentData = getConsentStatus();
-
-                // Update Gravity Forms
-                document.querySelectorAll('input[name="cookienod_consent_data"]').forEach(function(field) {
-                    field.value = JSON.stringify(consentData);
-                });
-
-                // Update Contact Form 7
-                document.querySelectorAll('input[name="cookienod_consent_data"]').forEach(function(field) {
-                    field.value = JSON.stringify(consentData);
-                });
-
-                // Update CF7 consent summary display
-                document.querySelectorAll('.wpcf7-consent-summary[data-cookienod-summary="true"]').forEach(function(summary) {
-                    var listItems = summary.querySelectorAll('.cookienod-consent-list li');
-                    listItems.forEach(function(li) {
-                        var cat = li.getAttribute('data-category');
-                        var statusSpan = li.querySelector('.cookienod-status');
-                        if (statusSpan && cat) {
-                            var hasCon = (cat === 'necessary') ? true : (consentData[cat] === true);
-                            statusSpan.textContent = hasCon ? '✓' : '✗';
-                            statusSpan.style.color = hasCon ? '#28a745' : '#dc3545';
-                        }
-                    });
-                });
-            }
-
-            // Handle Elementor widget placeholder buttons
-            function handlePlaceholderButtons() {
-                document.querySelectorAll('.cookienod-give-consent, .cookienod-load-script, .cookienod-load-iframe').forEach(function(btn) {
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        var category = this.getAttribute('data-category') || 'marketing';
-
-                        // Update consent in localStorage (triggers cookienod.min.js to reload)
-                        try {
-                            var prefs = getConsentStatus();
-                            prefs[category] = true;
-                            localStorage.setItem('cs_cookie_prefs', JSON.stringify(prefs));
-                            localStorage.setItem('cs_consent_given', 'true');
-
-                            // Dispatch event for cookienod.min.js to pick up
-                            window.dispatchEvent(new CustomEvent('cookiePreferencesChanged', {
-                                detail: prefs
-                            }));
-
-                            // Hide the placeholder and show content
-                            var placeholder = this.closest('.cookienod-widget-placeholder, .cookienod-blocked-script, .cookienod-blocked-iframe');
-                            if (placeholder) {
-                                placeholder.style.display = 'none';
-                            }
-
-                            // Reload scripts marked with data-category
-                            var scripts = document.querySelectorAll('script[type="text/cookienod"][data-category="' + category + '"]');
-                            scripts.forEach(function(script) {
-                                var encodedScript = script.getAttribute('data-script');
-                                if (encodedScript) {
-                                    try {
-                                        var decoded = atob(encodedScript);
-                                        var temp = document.createElement('div');
-                                        temp.innerHTML = decoded;
-                                        var newScript = temp.firstChild;
-                                        if (newScript) {
-                                            newScript.type = 'text/javascript';
-                                            document.head.appendChild(newScript);
-                                        }
-                                        script.remove();
-                                    } catch (err) {
-                                        console.error('CookieNod: Failed to load script', err);
-                                    }
-                                }
-                            });
-
-                            // Reload iframes
-                            var iframes = document.querySelectorAll('.cookienod-blocked-iframe[data-src]');
-                            iframes.forEach(function(iframeContainer) {
-                                var src = iframeContainer.getAttribute('data-src');
-                                if (src) {
-                                    iframeContainer.innerHTML = '<iframe src="' + src + '" style="width:100%;height:100%;border:none;"></iframe>';
-                                }
-                            });
-
-                            // Log consent if needed
-                            updateFormConsentFields();
-                        } catch (err) {
-                            console.error('CookieNod: Error giving consent', err);
-                        }
-                    });
-                });
-            }
-
-            // Listen for consent changes
-            window.addEventListener('cookienod:consentChanged', updateFormConsentFields);
-            window.addEventListener('cookiePreferencesChanged', updateFormConsentFields);
-
-            // Initialize on DOM ready and after Elementor renders
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    updateFormConsentFields();
-                    handlePlaceholderButtons();
-                });
-            } else {
-                updateFormConsentFields();
-                handlePlaceholderButtons();
-            }
-
-            // Elementor frontend render hook
-            if (window.elementorFrontend) {
-                window.elementorFrontend.hooks.addAction('frontend/element_ready/widget', function() {
-                    handlePlaceholderButtons();
-                });
-            }
-        })();
-        </script>
-        <?php
     }
 
     /**

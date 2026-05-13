@@ -2,143 +2,695 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: CookieNod 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/cookienod\n"
+"Report-Msgid-Bugs-To: https://cookienod.com\n"
 "POT-Creation-Date: 2024-01-01 00:00:00+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 
-#: cookienod.php:100
+#: cookienod.php
 msgid "CookieNod"
 msgstr ""
 
-#: cookienod.php:101
+#: cookienod.php
 msgid "Dashboard"
 msgstr ""
 
-#: cookienod.php:109
+#: cookienod.php
 msgid "Settings"
 msgstr ""
 
-#: cookienod.php:117
+#: cookienod.php
 msgid "Cookie Scan"
 msgstr ""
 
-#: cookienod.php:125
+#: cookienod.php
 msgid "Consent Log"
 msgstr ""
 
-#: includes/class-compliance.php:45
+#: includes/class-admin.php
+msgid "CookieNod requires an API key to function."
+msgstr ""
+
+#: includes/class-core.php
+msgid "API key changed, please verify again."
+msgstr ""
+
+#: includes/class-compliance.php
 msgid "Necessary"
 msgstr ""
 
-#: includes/class-compliance.php:46
+#: includes/class-compliance.php
 msgid "Essential cookies required for website functionality"
 msgstr ""
 
-#: includes/class-compliance.php:53
+#: includes/class-compliance.php
 msgid "Functional"
 msgstr ""
 
-#: includes/class-compliance.php:54
+#: includes/class-compliance.php
 msgid "Enhanced functionality and personalization"
 msgstr ""
 
-#: includes/class-compliance.php:61
+#: includes/class-compliance.php
 msgid "Analytics"
 msgstr ""
 
-#: includes/class-compliance.php:62
+#: includes/class-compliance.php
 msgid "Website usage analysis and statistics"
 msgstr ""
 
-#: includes/class-compliance.php:69
+#: includes/class-compliance.php
 msgid "Marketing"
 msgstr ""
 
-#: includes/class-compliance.php:70
+#: includes/class-compliance.php
 msgid "Advertising and marketing purposes"
 msgstr ""
 
-#: includes/class-woocommerce.php:75
+#: includes/class-woocommerce.php
+msgid "Cookie Consent"
+msgstr ""
+
+#: includes/class-woocommerce.php
+msgid "Marketing:"
+msgstr ""
+
+#: includes/class-woocommerce.php
+msgid "Analytics:"
+msgstr ""
+
+#: includes/class-woocommerce.php
 msgid "I want to receive marketing emails and offers"
 msgstr ""
 
-#: includes/class-woocommerce.php:82
+#: includes/class-woocommerce.php
 msgid "I consent to analytics tracking for order improvement"
 msgstr ""
 
-#: includes/class-policy-generator.php:145
+#: includes/class-frontend.php
+msgid "Cookie Preferences"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "We use cookies to enhance your experience. Choose your preferences below."
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Accept All"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Reject"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Customize"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Save Preferences"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Cookie Settings"
+msgstr ""
+
+#: includes/class-frontend.php
+msgid "Required"
+msgstr ""
+
+#: includes/class-policy-generator.php
 msgid "Introduction"
 msgstr ""
 
-#: includes/class-policy-generator.php:157
+#: includes/class-policy-generator.php
 msgid "What Are Cookies"
 msgstr ""
 
-#: includes/class-policy-generator.php:169
+#: includes/class-policy-generator.php
 msgid "How We Use Cookies"
 msgstr ""
 
-#: templates/dashboard.php:15
+#: templates/dashboard.php
 msgid "Status"
 msgstr ""
 
-#: templates/dashboard.php:35
+#: templates/dashboard.php
 msgid "Connected"
 msgstr ""
 
-#: templates/dashboard.php:47
-msgid "Consent Statistics"
+#: templates/dashboard.php
+msgid "Not Configured"
 msgstr ""
 
-#: templates/settings.php:25
+#: templates/dashboard.php
+msgid "Invalid API Key"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Site:"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Plan:"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Please configure your API key in Settings."
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Configure Settings"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Statistics"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Cookies Detected"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Total Consents"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Last 7 Days"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Compliance"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "CookieNod supports the following regulations:"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Quick Actions"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Cookie Manager"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Integration Guide"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Get an API Key"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Sign up at"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "to get your free API key."
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Enter your API key in the Settings page and choose your preferred blocking mode."
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Customize Banner"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Select your preferred banner position and theme to match your site design."
+msgstr ""
+
+#: templates/dashboard.php
+msgid "Enable Google Consent Mode (Optional)"
+msgstr ""
+
+#: templates/dashboard.php
+msgid "If you use Google Analytics or Google Tag Manager, enable Google Consent Mode for proper integration."
+msgstr ""
+
+#: templates/settings.php
 msgid "API Configuration"
 msgstr ""
 
-#: templates/settings.php:30
+#: templates/settings.php
 msgid "API Key"
 msgstr ""
 
-#: templates/settings.php:56
+#: templates/settings.php
+msgid "Verify Key"
+msgstr ""
+
+#: templates/settings.php
+msgid "Get your API key at"
+msgstr ""
+
+#: templates/settings.php
+msgid "Connected Site"
+msgstr ""
+
+#: templates/settings.php
+msgid "URL:"
+msgstr ""
+
+#: templates/settings.php
+msgid "Status:"
+msgstr ""
+
+#: templates/settings.php
 msgid "Display Settings"
 msgstr ""
 
-#: templates/settings.php:61
+#: templates/settings.php
 msgid "Cookie Blocking Mode"
 msgstr ""
 
-#: templates/custom-css.php:20
-msgid "Theme Templates"
+#: templates/settings.php
+msgid "Auto (recommended) - Automatically block cookies"
 msgstr ""
 
-#: templates/custom-css.php:50
-msgid "Safe CSS Properties"
+#: templates/settings.php
+msgid "Manual Consent Attributes - Use data-consent attributes on script tags"
 msgstr ""
 
-#: templates/ab-testing.php:20
-msgid "Active Test"
+#: templates/settings.php
+msgid "Silent Blocking - Server blocks without visible placeholders"
 msgstr ""
 
-#: templates/ab-testing.php:21
-msgid "All Tests"
+#: templates/settings.php
+msgid "Blocking with Placeholders - Server blocks with visible placeholder boxes"
 msgstr ""
 
-#: templates/ab-testing.php:22
-msgid "Create Test"
+#: templates/settings.php
+msgid "Auto:"
 msgstr ""
 
-#: templates/policy-generator.php:25
-msgid "Generate"
+#: templates/settings.php
+msgid "JavaScript handles all cookie blocking (recommended)."
 msgstr ""
 
-#: templates/policy-generator.php:26
+#: templates/settings.php
+msgid "Manual Consent Attributes:"
+msgstr ""
+
+#: templates/settings.php
+msgid "Use data-consent attributes on script tags for precise control."
+msgstr ""
+
+#: templates/settings.php
+msgid "Silent:"
+msgstr ""
+
+#: templates/settings.php
+msgid "Server blocks scripts without visible placeholders."
+msgstr ""
+
+#: templates/settings.php
+msgid "Placeholders:"
+msgstr ""
+
+#: templates/settings.php
+msgid "Server blocks with visible placeholder boxes (legacy mode)."
+msgstr ""
+
+#: templates/settings.php
+msgid "Use data-consent attributes:"
+msgstr ""
+
+#: templates/settings.php
+msgid "Excluded Scripts"
+msgstr ""
+
+#: templates/settings.php
+msgid "Enter script URL patterns to exclude (one per line). Use * for wildcards. Example: *google-analytics.com*"
+msgstr ""
+
+#: templates/settings.php
+msgid "Banner Position"
+msgstr ""
+
+#: templates/settings.php
+msgid "Bottom Banner"
+msgstr ""
+
+#: templates/settings.php
+msgid "Top Banner"
+msgstr ""
+
+#: templates/settings.php
+msgid "Center Modal"
+msgstr ""
+
+#: templates/settings.php
+msgid "Banner Theme"
+msgstr ""
+
+#: templates/settings.php
+msgid "Light"
+msgstr ""
+
+#: templates/settings.php
+msgid "Dark"
+msgstr ""
+
+#: templates/settings.php
+msgid "Banner Text"
+msgstr ""
+
+#: templates/settings.php
+msgid "Customize the text displayed on the cookie consent banner."
+msgstr ""
+
+#: templates/settings.php
+msgid "Banner Title"
+msgstr ""
+
+#: templates/settings.php
+msgid "Banner Description"
+msgstr ""
+
+#: templates/settings.php
+msgid "Accept All Button"
+msgstr ""
+
+#: templates/settings.php
+msgid "Reject Button"
+msgstr ""
+
+#: templates/settings.php
+msgid "Customize Button"
+msgstr ""
+
+#: templates/settings.php
+msgid "Save Preferences Button"
+msgstr ""
+
+#: templates/settings.php
+msgid "Settings Modal Title"
+msgstr ""
+
+#: templates/settings.php
+msgid "Necessary Category Label"
+msgstr ""
+
+#: templates/settings.php
+msgid "Label for essential cookies category"
+msgstr ""
+
+#: templates/settings.php
+msgid "Functional Category Label"
+msgstr ""
+
+#: templates/settings.php
+msgid "Analytics Category Label"
+msgstr ""
+
+#: templates/settings.php
+msgid "Marketing Category Label"
+msgstr ""
+
+#: templates/settings.php
+msgid "Required Badge"
+msgstr ""
+
+#: templates/settings.php
+msgid "Compliance Settings"
+msgstr ""
+
+#: templates/settings.php
+msgid "Auto-Detect Law"
+msgstr ""
+
+#: templates/settings.php
+msgid "Automatically detect applicable law based on visitor location (requires GeoIP)"
+msgstr ""
+
+#: templates/settings.php
+msgid "Default Regulation"
+msgstr ""
+
+#: templates/settings.php
+msgid "Used when auto-detect is disabled or GeoIP is unavailable."
+msgstr ""
+
+#: templates/settings.php
+msgid "Consent Logging"
+msgstr ""
+
+#: templates/settings.php
+msgid "Log user consent choices for compliance auditing"
+msgstr ""
+
+#: templates/settings.php
+msgid "Google Consent Mode v2"
+msgstr ""
+
+#: templates/settings.php
+msgid "Integrates with Google Tag Manager and Google Analytics for consent-based data collection. Required for compliance with Google's EU user consent policy."
+msgstr ""
+
+#: templates/settings.php
+msgid "Learn more"
+msgstr ""
+
+#: templates/settings.php
+msgid "Enable Consent Mode"
+msgstr ""
+
+#: templates/settings.php
+msgid "Enable Google Consent Mode v2 integration"
+msgstr ""
+
+#: templates/settings.php
+msgid "GTM Integration"
+msgstr ""
+
+#: templates/settings.php
+msgid "Pass consent state to Google Tag Manager dataLayer"
+msgstr ""
+
+#: templates/settings.php
+msgid "Redact Data"
+msgstr ""
+
+#: templates/settings.php
+msgid "Redact advertising data when marketing consent is denied"
+msgstr ""
+
+#: templates/settings.php
+msgid "Consent Types"
+msgstr ""
+
+#: templates/settings.php
+msgid "Type"
+msgstr ""
+
+#: templates/settings.php
+msgid "Category"
+msgstr ""
+
+#: templates/settings.php
+msgid "Description"
+msgstr ""
+
+#: templates/settings.php
+msgid "v2 Only"
+msgstr ""
+
+#: templates/scan.php
+msgid "Cookie Scan Status"
+msgstr ""
+
+#: templates/scan.php
+msgid "Last scan:"
+msgstr ""
+
+#: templates/scan.php
+msgid "Total cookies detected:"
+msgstr ""
+
+#: templates/scan.php
+msgid "No scan has been performed yet."
+msgstr ""
+
+#: templates/scan.php
+msgid "Start New Scan"
+msgstr ""
+
+#: templates/scan.php
 msgid "Detected Cookies"
 msgstr ""
 
-#: templates/policy-generator.php:27
-msgid "Settings"
+#: templates/scan.php
+msgid "Filter by category"
+msgstr ""
+
+#: templates/scan.php
+msgid "All Categories"
+msgstr ""
+
+#: templates/scan.php
+msgid "Search cookies..."
+msgstr ""
+
+#: templates/scan.php
+msgid "Cookie Name"
+msgstr ""
+
+#: templates/scan.php
+msgid "Source"
+msgstr ""
+
+#: templates/scan.php
+msgid "No Cookies Detected Yet"
+msgstr ""
+
+#: templates/scan.php
+msgid "Run a scan to detect cookies on your website. The scan will analyze your site's cookies and categorize them automatically."
+msgstr ""
+
+#: templates/scan.php
+msgid "Note: For best results, visit your website in an incognito window after activating the plugin to trigger the JavaScript scanner."
+msgstr ""
+
+#: templates/cookies.php
+msgid "Manage your detected cookies and their categories."
+msgstr ""
+
+#: templates/cookies.php
+msgid "No cookies have been detected yet. Run a scan first."
+msgstr ""
+
+#: templates/cookies.php
+msgid "Update Cookie"
+msgstr ""
+
+#: templates/cookies.php
+msgid "Category updated successfully."
+msgstr ""
+
+#: templates/consent-log.php
+msgid "Export CSV"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "Date"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "User"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "Consent Type"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "Categories"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "IP Address"
+msgstr ""
+
+#: templates/consent-log.php
+msgid "No consent records found."
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Active Test"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "All Tests"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Create Test"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Test Name"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Description"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Variant"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Visitors"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Conversions"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "Rate"
+msgstr ""
+
+#: templates/ab-testing.php
+msgid "No A/B tests created yet."
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Generate"
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Detected Cookies"
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Generate privacy policy based on detected cookies."
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Policy Generator"
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Select Template"
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Policy Title"
+msgstr ""
+
+#: templates/policy-generator.php
+msgid "Include cookie categories"
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Custom CSS"
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Add custom CSS to customize the cookie banner appearance."
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Theme Templates"
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Custom CSS Code"
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Safe CSS Properties"
+msgstr ""
+
+#: templates/custom-css.php
+msgid "Preview"
 msgstr ""

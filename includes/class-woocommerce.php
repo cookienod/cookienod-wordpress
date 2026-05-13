@@ -378,16 +378,39 @@ class CookieNod_WooCommerce {
     }
 
     /**
-     * Get client IP
+     * Get client IP (anonymized for GDPR compliance)
+     *
+     * @return string Anonymized IP address (last octet removed for IPv4, last 64 bits for IPv6).
      */
     private function get_client_ip() {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
+        $raw_ip = '';
+
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
                 $ips = explode(',', sanitize_text_field(wp_unslash($_SERVER[$key])));
-                return trim($ips[0]);
+                $raw_ip = trim($ips[0]);
+                break;
             }
         }
+
+        if (empty($raw_ip)) {
+            return '';
+        }
+
+        // Anonymize for GDPR compliance
+        if (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $parts = explode('.', $raw_ip);
+            $parts[3] = '0';
+            return implode('.', $parts);
+        } elseif (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $parts = str_split(bin2hex(inet_pton($raw_ip)), 16);
+            if (count($parts) >= 2) {
+                $parts[1] = '0000000000000000';
+            }
+            return inet_ntop(hex2bin(implode('', $parts)));
+        }
+
         return '';
     }
 

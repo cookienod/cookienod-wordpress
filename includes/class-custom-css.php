@@ -66,26 +66,32 @@ class CookieNod_Custom_CSS {
      * Safe selectors
      */
     private $safe_selectors = array(
+        // Main containers
         '#cs-consent-banner',
         '#cs-detailed-settings',
+        '.cs-banner',
+        '.cs-banner.cs-dark',
+        '.cs-banner.cs-light',
+        '.cs-settings',
+        '.cs-settings.cs-dark',
+        '.cs-settings.cs-light',
+        // Buttons
         '#cs-retrigger-btn',
-        '.cs-banner-content',
-        '.cs-banner-text',
+        '#cs-reject-btn',
+        '#cs-customize-btn',
+        '#cs-accept-btn',
+        '#cs-save-prefs',
+        '#cs-close-banner',
+        '#cs-close-settings',
+        // Category checkboxes
+        '#cs-cat-necessary',
+        '#cs-cat-functional',
+        '#cs-cat-analytics',
+        '#cs-cat-marketing',
+        // Text elements
         '.cs-banner-title',
         '.cs-banner-description',
-        '.cs-banner-actions',
-        '.cs-btn',
-        '.cs-btn-primary',
-        '.cs-btn-secondary',
-        '.cs-btn-tertiary',
-        '.cs-settings-modal',
-        '.cs-settings-content',
-        '.cs-category',
-        '.cs-category-header',
-        '.cs-category-title',
-        '.cs-category-description',
-        '.cs-toggle',
-        '.cs-toggle-switch',
+        '.cs-settings-title',
     );
 
     /**
@@ -115,13 +121,24 @@ class CookieNod_Custom_CSS {
         $this->themes = array(
             'minimal' => array(
                 'name' => __('Minimal', 'cookienod'),
-                'css' => '#cs-consent-banner {
+                'css' => '.cs-banner {
     background: #ffffff;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-#cs-consent-banner .cs-btn-primary {
+.cs-banner-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.cs-banner-description {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+#cs-accept-btn {
     background: #000000;
     color: #ffffff;
     border: none;
@@ -129,7 +146,7 @@ class CookieNod_Custom_CSS {
     border-radius: 4px;
 }
 
-#cs-consent-banner .cs-btn-secondary {
+#cs-reject-btn, #cs-customize-btn {
     background: transparent;
     color: #000000;
     border: 1px solid #000000;
@@ -139,7 +156,7 @@ class CookieNod_Custom_CSS {
             ),
             'rounded' => array(
                 'name' => __('Rounded', 'cookienod'),
-                'css' => '#cs-consent-banner {
+                'css' => '.cs-banner {
     background: #ffffff;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
@@ -147,12 +164,12 @@ class CookieNod_Custom_CSS {
     max-width: calc(100% - 40px);
 }
 
-#cs-consent-banner .cs-btn {
+#cs-accept-btn, #cs-reject-btn, #cs-customize-btn {
     border-radius: 25px;
     padding: 12px 24px;
 }
 
-#cs-consent-banner .cs-btn-primary {
+#cs-accept-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
 }
@@ -164,7 +181,7 @@ class CookieNod_Custom_CSS {
             ),
             'glassmorphism' => array(
                 'name' => __('Glassmorphism', 'cookienod'),
-                'css' => '#cs-consent-banner {
+                'css' => '.cs-banner {
     background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -172,46 +189,46 @@ class CookieNod_Custom_CSS {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
-#cs-consent-banner.dark {
+.cs-banner.cs-dark {
     background: rgba(31, 41, 55, 0.85) !important;
     border-color: rgba(75, 85, 99, 0.3) !important;
 }
 
-#cs-consent-banner .cs-banner-title,
-#cs-consent-banner .cs-banner-description {
+.cs-banner-title,
+.cs-banner-description {
     color: inherit;
 }
 
-#cs-consent-banner .cs-btn {
+#cs-accept-btn, #cs-reject-btn, #cs-customize-btn {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-radius: 8px;
     font-weight: 500;
 }
 
-#cs-consent-banner .cs-btn-primary {
+#cs-accept-btn {
     background: rgba(37, 99, 235, 0.9) !important;
     color: #ffffff !important;
     border: 1px solid rgba(37, 99, 235, 0.5) !important;
 }
 
-#cs-consent-banner .cs-btn-secondary {
+#cs-reject-btn {
     background: rgba(243, 244, 246, 0.8) !important;
     color: #1f2937 !important;
     border: 1px solid rgba(209, 213, 219, 0.5) !important;
 }
 
-#cs-consent-banner.dark .cs-btn-secondary {
+.cs-banner.cs-dark #cs-reject-btn {
     background: rgba(75, 85, 99, 0.5) !important;
     color: #f9fafb !important;
 }
 
-#cs-consent-banner .cs-btn-tertiary {
+#cs-customize-btn {
     background: rgba(255, 255, 255, 0.5) !important;
     border: 1px solid rgba(209, 213, 219, 0.3) !important;
 }
 
-#cs-consent-banner.dark .cs-btn-tertiary {
+.cs-banner.cs-dark #cs-customize-btn {
     background: rgba(55, 65, 81, 0.5) !important;
     color: #f9fafb !important;
 }
@@ -227,7 +244,7 @@ class CookieNod_Custom_CSS {
             ),
             'brutalist' => array(
                 'name' => __('Brutalist', 'cookienod'),
-                'css' => '#cs-consent-banner {
+                'css' => '.cs-banner {
     background: #ff00ff;
     color: #000000;
     border: 4px solid #000000;
@@ -236,7 +253,7 @@ class CookieNod_Custom_CSS {
     text-transform: uppercase;
 }
 
-#cs-consent-banner .cs-btn {
+#cs-accept-btn, #cs-reject-btn, #cs-customize-btn {
     border: 2px solid #000000;
     background: #ffff00;
     color: #000000;
@@ -244,7 +261,7 @@ class CookieNod_Custom_CSS {
     font-weight: bold;
 }
 
-#cs-consent-banner .cs-btn:hover {
+#cs-accept-btn:hover, #cs-reject-btn:hover, #cs-customize-btn:hover {
     background: #00ffff;
 }
 
@@ -256,19 +273,19 @@ class CookieNod_Custom_CSS {
             ),
             'elegant' => array(
                 'name' => __('Elegant', 'cookienod'),
-                'css' => '#cs-consent-banner {
+                'css' => '.cs-banner {
     background: #faf8f5;
     border-top: 1px solid #e8e4df;
     font-family: "Georgia", serif;
 }
 
-#cs-consent-banner .cs-banner-title {
+.cs-banner-title {
     font-weight: normal;
     font-size: 1.3em;
     color: #2c2c2c;
 }
 
-#cs-consent-banner .cs-btn {
+#cs-accept-btn, #cs-reject-btn, #cs-customize-btn {
     border-radius: 2px;
     font-family: "Helvetica Neue", sans-serif;
     text-transform: uppercase;
@@ -276,12 +293,12 @@ class CookieNod_Custom_CSS {
     font-size: 0.8em;
 }
 
-#cs-consent-banner .cs-btn-primary {
+#cs-accept-btn {
     background: #2c2c2c;
     color: #faf8f5;
 }
 
-#cs-consent-banner .cs-btn-secondary {
+#cs-reject-btn, #cs-customize-btn {
     background: transparent;
     color: #2c2c2c;
     border: 1px solid #2c2c2c;
@@ -310,7 +327,7 @@ class CookieNod_Custom_CSS {
         if (!empty($validated_css)) {
             // Register a handle if not already done, then add inline CSS
             if (!wp_style_is('cookienod-custom-frontend', 'registered')) {
-                wp_register_style('cookienod-custom-frontend', false, [], COOKIENOD_VERSION);
+                wp_register_style('cookienod-custom-frontend', '', array(), COOKIENOD_VERSION);
             }
             wp_enqueue_style('cookienod-custom-frontend');
             wp_add_inline_style('cookienod-custom-frontend', $validated_css);
@@ -389,9 +406,12 @@ class CookieNod_Custom_CSS {
             wp_send_json_error('Unauthorized');
         }
 
-        // Get parameters
-        $position = sanitize_text_field(wp_unslash($_POST['position'] ?? 'bottom'));
-        $banner_theme = sanitize_text_field(wp_unslash($_POST['banner_theme'] ?? 'light'));
+        // Get current settings from database - ensures preview always reflects latest saved settings
+        $options = get_option('cookienod_wp_options', array());
+        $position = isset($options['banner_position']) ? $options['banner_position'] : 'bottom';
+        $banner_theme = isset($options['banner_theme']) ? $options['banner_theme'] : 'light';
+
+        // Custom CSS from request (optional override)
         $custom_css = sanitize_textarea_field(wp_unslash($_POST['custom_css'] ?? ''));
 
         // Validate CSS
@@ -420,18 +440,42 @@ class CookieNod_Custom_CSS {
         $preview_html .= '</head>' . "\n";
         $preview_html .= '<body>' . "\n";
         $preview_html .= '    <div class="preview-container">' . "\n";
+
+        // Modal overlay for center position - matches frontend JS (cookienod.min.js)
+        // which creates overlay with: style="position:fixed;inset:0;background:rgba(0,0,0,0.5);..."
+        if ($position === 'center') {
+            $preview_html .= '        <div id="cs-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999998;"></div>' . "\n";
+        }
+
         $preview_html .= '        <div class="preview-content">' . "\n";
         $preview_html .= '            <h1>' . esc_html__('Your Website', 'cookienod') . '</h1>' . "\n";
         $preview_html .= '            <p>' . esc_html__('This is a preview of how the consent banner will appear on your site.', 'cookienod') . '</p>' . "\n";
         $preview_html .= '        </div>' . "\n";
-        $preview_html .= '        <div id="cs-consent-banner" class="position-' . esc_attr($position) . ' ' . esc_attr($banner_theme) . '">' . "\n";
+
+        // Using inline styles instead of CSS classes to match frontend behavior.
+        // The frontend JS (cookienod.min.js) applies position via inline styles:
+        // - Center: position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)
+        // - Top: top:0;left:0;right:0
+        // - Bottom: bottom:0;left:0;right:0
+        // CSS classes like .position-center don't exist in the frontend.
+        $banner_style = 'position:fixed;';
+        if ($position === 'center') {
+            $banner_style .= 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:480px;max-height:90vh;overflow-y:auto;';
+        } elseif ($position === 'top') {
+            $banner_style .= 'top:0;left:0;right:0;';
+        } else {
+            $banner_style .= 'bottom:0;left:0;right:0;';
+        }
+        $banner_style .= 'z-index:999999;';
+
+        $preview_html .= '        <div id="cs-consent-banner" class="cs-banner cs-' . esc_attr($banner_theme) . '" style="' . esc_attr($banner_style) . '">' . "\n";
         $preview_html .= '            <div class="cs-banner-content">' . "\n";
         $preview_html .= '                <h3 class="cs-banner-title">' . esc_html__('Cookie Preferences', 'cookienod') . '</h3>' . "\n";
         $preview_html .= '                <p class="cs-banner-description">' . esc_html__('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod') . '</p>' . "\n";
         $preview_html .= '                <div class="cs-banner-actions">' . "\n";
-        $preview_html .= '                    <button class="cs-btn cs-btn-secondary">' . esc_html__('Reject', 'cookienod') . '</button>' . "\n";
-        $preview_html .= '                    <button class="cs-btn cs-btn-tertiary">' . esc_html__('Customize', 'cookienod') . '</button>' . "\n";
-        $preview_html .= '                    <button class="cs-btn cs-btn-primary">' . esc_html__('Accept All', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                    <button id="cs-reject-btn" class="cs-btn cs-btn-secondary">' . esc_html__('Reject', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                    <button id="cs-customize-btn" class="cs-btn cs-btn-tertiary">' . esc_html__('Customize', 'cookienod') . '</button>' . "\n";
+        $preview_html .= '                    <button id="cs-accept-btn" class="cs-btn cs-btn-primary">' . esc_html__('Accept All', 'cookienod') . '</button>' . "\n";
         $preview_html .= '                </div>' . "\n";
         $preview_html .= '            </div>' . "\n";
         $preview_html .= '        </div>' . "\n";
@@ -556,9 +600,9 @@ class CookieNod_Custom_CSS {
                             <?php esc_html_e('We use cookies to enhance your experience. Choose your preferences below.', 'cookienod'); ?>
                         </p>
                         <div class="cs-banner-actions">
-                            <button class="cs-btn cs-btn-secondary"><?php esc_html_e('Reject', 'cookienod'); ?></button>
-                            <button class="cs-btn cs-btn-tertiary"><?php esc_html_e('Customize', 'cookienod'); ?></button>
-                            <button class="cs-btn cs-btn-primary"><?php esc_html_e('Accept All', 'cookienod'); ?></button>
+                            <button id="cs-reject-btn" class="cs-btn cs-btn-secondary"><?php esc_html_e('Reject', 'cookienod'); ?></button>
+                            <button id="cs-customize-btn" class="cs-btn cs-btn-tertiary"><?php esc_html_e('Customize', 'cookienod'); ?></button>
+                            <button id="cs-accept-btn" class="cs-btn cs-btn-primary"><?php esc_html_e('Accept All', 'cookienod'); ?></button>
                         </div>
                     </div>
                 </div>

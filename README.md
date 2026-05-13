@@ -6,6 +6,12 @@
 
 ---
 
+> 💡 **License & Documentation**
+> - **License**: Get a free license key or purchase a professional license key at [cookienod.com](https://www.cookienod.com/)
+> - **Demo & Docs**: Explore the frontend demo and access complete documentation at [cookienod.net](https://www.cookienod.net/)
+
+---
+
 ## Table of Contents
 
 1. [Description](#description)

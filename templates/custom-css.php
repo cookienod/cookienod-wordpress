@@ -20,7 +20,7 @@ $cookienod_options = get_option('cookienod_wp_options', array());
 $cookienod_current_css = $cookienod_options['custom_css'] ?? '';
 ?>
 
-<div class="wrap cookienod-custom-css" data-banner-theme="<?php echo esc_attr($options['banner_theme'] ?? 'light'); ?>">
+<div class="wrap cookienod-custom-css" data-banner-theme="<?php echo esc_attr($cookienod_options['banner_theme'] ?? 'light'); ?>" data-banner-position="<?php echo esc_attr($cookienod_options['banner_position'] ?? 'bottom'); ?>">
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
     <?php if (defined('WP_DEBUG') && WP_DEBUG) : ?>
@@ -81,8 +81,13 @@ $cookienod_current_css = $cookienod_options['custom_css'] ?? '';
                 <h3><?php esc_html_e('Safe Selectors', 'cookienod'); ?></h3>
 
                 <div class="safe-selectors">
-                    <code>#cs-consent-banner, #cs-detailed-settings, #cs-retrigger-btn,
-                        .cs-banner-content, .cs-banner-actions, .cs-btn, .cs-btn-primary</code>
+                    <code>.cs-banner, .cs-banner.cs-dark, .cs-banner.cs-light,
+.cs-settings, .cs-settings.cs-dark, .cs-settings.cs-light,
+#cs-consent-banner, #cs-detailed-settings,
+#cs-reject-btn, #cs-customize-btn, #cs-accept-btn, #cs-save-prefs,
+#cs-close-banner, #cs-close-settings, #cs-retrigger-btn,
+#cs-cat-necessary, #cs-cat-functional, #cs-cat-analytics, #cs-cat-marketing,
+.cs-banner-title, .cs-banner-description, .cs-settings-title</code>
                 </div>
             </div>
 

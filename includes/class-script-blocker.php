@@ -218,10 +218,26 @@ class CookieNod_Script_Blocker {
         $this->silent_mode = ($block_mode === 'silent');
 
         // Check saved consent
-        if (isset($_COOKIE['cookienod_consent'])) {
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
-            $this->consent = json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_consent'])), true);
-        }
+        if ( isset( $_COOKIE['cookienod_consent'] ) ) {
+
+            // Unslash + sanitize first (required for PHPCS)
+            $cookie_value = sanitize_text_field(
+                wp_unslash( $_COOKIE['cookienod_consent'] )
+            );
+
+            $raw_consent = json_decode( $cookie_value, true );
+
+            // Validate consent structure - only allow known category keys with boolean values
+            if ( is_array( $raw_consent ) ) {
+                $allowed_categories = array( 'necessary', 'functional', 'analytics', 'marketing' );
+
+                foreach ( $allowed_categories as $category ) {
+                    if ( isset( $raw_consent[ $category ] ) ) {
+                        $this->consent[ $category ] = rest_sanitize_boolean( $raw_consent[ $category ] );
+                    }
+                }
+            }
+        }      
 
         $this->init();
     }

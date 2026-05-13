@@ -86,7 +86,7 @@ $cookienod_last_detected = get_option('cookienod_wp_last_scan');
                        style="width: 100%; max-width: 400px;" />
             </div>
 
-            <!-- Cookie Table -->
+<!-- Cookie Table -->
             <table class="wp-list-table widefat striped" id="cookies-table">
                 <thead>
                     <tr>
@@ -187,105 +187,3 @@ $cookienod_last_detected = get_option('cookienod_wp_last_scan');
 
     <?php endif; ?>
 </div>
-
-<style>
-.cookienod-dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.cookienod-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-.cookienod-stat {
-    text-align: center;
-    padding: 15px;
-}
-.cookienod-stat-number {
-    display: block;
-    font-size: 2.5em;
-    font-weight: bold;
-}
-.cookienod-stat-label {
-    color: #666;
-    text-transform: capitalize;
-}
-.nav-tab-wrapper {
-    border-bottom: 1px solid #ddd;
-    background: #f9f9f9;
-    padding: 10px 10px 0;
-}
-.nav-tab {
-    display: inline-block;
-    padding: 8px 16px;
-    margin-right: 5px;
-    border: 1px solid #ddd;
-    border-bottom: none;
-    background: #f1f1f1;
-    color: #555;
-    text-decoration: none;
-    border-radius: 4px 4px 0 0;
-}
-.nav-tab-active {
-    background: #fff;
-    border-bottom: 1px solid #fff;
-    margin-bottom: -1px;
-    color: #000;
-}
-#cookies-table tbody tr {
-    transition: background-color 0.2s;
-}
-#cookies-table tbody tr:hover {
-    background-color: #f9f9f9;
-}
-</style>
-
-<script>
-(function($) {
-    'use strict';
-
-    $(document).ready(function() {
-        // Tab switching
-        $('.nav-tab').on('click', function(e) {
-            e.preventDefault();
-
-            var category = $(this).data('category');
-
-            $('.nav-tab').removeClass('nav-tab-active');
-            $(this).addClass('nav-tab-active');
-
-            if (category === 'all') {
-                $('#cookies-table tbody tr').show();
-            } else {
-                $('#cookies-table tbody tr').hide();
-                $('#cookies-table tbody tr[data-category="' + category + '"]').show();
-            }
-        });
-
-        // Search functionality
-        $('#cookie-search').on('input', function() {
-            var search = $(this).val().toLowerCase();
-            var activeCategory = $('.nav-tab-active').data('category');
-
-            $('#cookies-table tbody tr').each(function() {
-                var $row = $(this);
-                var text = $row.text().toLowerCase();
-                var category = $row.data('category');
-
-                var matchesSearch = text.indexOf(search) >= 0;
-                var matchesCategory = activeCategory === 'all' || category === activeCategory;
-
-                if (matchesSearch && matchesCategory) {
-                    $row.show();
-                } else {
-                    $row.hide();
-                }
-            });
-        });
-    });
-
-})(jQuery);
-</script>

@@ -306,7 +306,7 @@ The plugin requires the CookieNod service (provided by CookieNod Team) to functi
 
 If you enable Google Consent Mode v2, the plugin integrates with Google Analytics and Google Tag Manager. This is optional and disabled by default.
 
-* **Google Analytics Terms:** https://marketingplatform.google.com/about/analytics/terms/
+* **Google Analytics Terms:** https://business.safety.google/adsprocessorterms/
 * **Google Privacy Policy:** https://policies.google.com/privacy
 
 

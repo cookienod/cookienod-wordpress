@@ -70,10 +70,7 @@ class CookieNod_AB_Testing {
      */
     private function init() {
 
-        // Assign variant to user
-        add_action('init', array($this, 'assign_variant'));
-
-        // Track events
+        // Track events (assign_variant is registered in CookieNod_Core::init_components)
         add_action('wp_ajax_cookienod_track_event', array($this, 'track_event'));
         add_action('wp_ajax_nopriv_cookienod_track_event', array($this, 'track_event'));
 
@@ -95,8 +92,8 @@ class CookieNod_AB_Testing {
         global $wpdb;
 
         $charset_collate = $wpdb->get_charset_collate();
-        $ab_tests_table = $wpdb->prefix . 'cookienod_ab_tests';
-        $ab_results_table = $wpdb->prefix . 'cookienod_ab_results';
+        $ab_tests_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
+        $ab_results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_results' );
 
         // Tests table
         $sql1 = "CREATE TABLE IF NOT EXISTS $ab_tests_table (
@@ -177,9 +174,14 @@ class CookieNod_AB_Testing {
         setcookie(
             'cookienod_ab_test',
             json_encode($test_data),
-            time() + 30 * DAY_IN_SECONDS,
-            COOKIEPATH,
-            COOKIE_DOMAIN
+            array(
+                'expires' => time() + 30 * DAY_IN_SECONDS,
+                'path' => COOKIEPATH,
+                'domain' => COOKIE_DOMAIN,
+                'secure' => !empty($_SERVER['HTTPS']) || strpos(get_option('siteurl'), 'https://') === 0,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            )
         );
 
         // Log impression
@@ -240,29 +242,59 @@ class CookieNod_AB_Testing {
             return sanitize_text_field(wp_unslash($_COOKIE['cookienod_session']));
         }
 
-        $session_id = wp_generate_password(32, false);
+        $session_id = wp_hash(microtime() . wp_rand());
         setcookie(
             'cookienod_session',
             $session_id,
-            time() + 30 * DAY_IN_SECONDS,
-            COOKIEPATH,
-            COOKIE_DOMAIN
+            array(
+                'expires' => time() + 30 * DAY_IN_SECONDS,
+                'path' => COOKIEPATH,
+                'domain' => COOKIE_DOMAIN,
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            )
         );
         return $session_id;
     }
 
     /**
-     * Get client IP
+     * Get client IP (anonymized for GDPR compliance)
+     *
+     * @return string Anonymized IP address (last octet removed for IPv4, last 64 bits for IPv6).
      */
     private function get_client_ip() {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
+        $raw_ip = '';
+
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- IP addresses sanitized after unslash
                 $ips = explode(',', sanitize_text_field(wp_unslash($_SERVER[$key])));
-                return trim($ips[0]);
+                $raw_ip = trim($ips[0]);
+                break;
             }
         }
+
+        if (empty($raw_ip)) {
+            return '';
+        }
+
+        // Anonymize IP for GDPR compliance - remove last octet(s)
+        if (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            // IPv4: remove last octet (e.g., 192.168.1.100 -> 192.168.1.0)
+            $parts = explode('.', $raw_ip);
+            $parts[3] = '0';
+            return implode('.', $parts);
+        } elseif (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            // IPv6: anonymize by replacing last 64 bits
+            $parts = str_split(bin2hex(inet_pton($raw_ip)), 16);
+            if (count($parts) >= 2) {
+                $parts[1] = '0000000000000000';
+            }
+            return inet_ntop(hex2bin(implode('', $parts)));
+        }
+
         return '';
     }
 
@@ -302,26 +334,110 @@ class CookieNod_AB_Testing {
             wp_send_json_error('Missing parameters');
         }
 
+        // Validate test exists and is active
+        if (!$this->is_valid_active_test($test_id, $variant_id)) {
+            wp_send_json_error('Invalid test or variant');
+        }
+
         $this->log_event($test_id, $variant_id, $event_type, $event_data);
 
         wp_send_json_success(array('logged' => true));
     }
 
     /**
-     * Add variant attribute to script
+     * Validate test exists and is active, and variant belongs to it
+     *
+     * @param int $test_id Test ID.
+     * @param int $variant_id Variant ID.
+     * @return bool
+     */
+    private function is_valid_active_test($test_id, $variant_id) {
+        global $wpdb;
+
+        $tests_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
+
+        // Check if test exists and is active
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is necessary for validation
+        $test = $wpdb->get_row(
+            $wpdb->prepare(                
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+                "SELECT id, variants FROM {$tests_table} WHERE id = %d AND status = 'active'",
+                $test_id
+            ),
+            ARRAY_A
+        );
+
+        if (!$test) {
+            return false;
+        }
+
+        // Validate variant belongs to this test
+        $variants = json_decode($test['variants'], true);
+        if (!is_array($variants)) {
+            return false;
+        }
+
+        foreach ($variants as $variant) {
+            if (isset($variant['id']) && $variant['id'] == $variant_id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Add variant attributes to script
+     * Passes variant-specific settings to the external cookienod.js
      */
     public function add_variant_attribute($attributes) {
-        if (!$this->current_test) {
+        // Read test data from cookie
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
+        $test_data = isset($_COOKIE['cookienod_ab_test']) ?
+            json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_ab_test'])), true) : array();
+
+        $test_id = $test_data['test_id'] ?? 0;
+        $variant_id = $test_data['variant_id'] ?? 0;
+
+        if (!$test_id || !$variant_id) {
             return $attributes;
         }
 
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value will be validated by json_decode
-        $variant_id = isset($_COOKIE['cookienod_ab_test']) ?
-            json_decode(sanitize_text_field(wp_unslash($_COOKIE['cookienod_ab_test'])), true)['variant_id'] ?? 0 : 0;
+        // Get the test from database
+        $test = $this->get_test($test_id);
 
-        if ($variant_id) {
-            $attributes .= sprintf(' data-ab-variant="%d"', $variant_id);
+        if (!$test || $test['status'] !== 'active') {
+            return $attributes;
         }
+
+        // Get variant details from the test
+        $variants = json_decode($test['variants'], true);
+
+        $variant = null;
+        foreach ($variants as $v) {
+            if (isset($v['id']) && $v['id'] == $variant_id) {
+                $variant = $v;
+                break;
+            }
+        }
+
+        if (!$variant) {
+            return $attributes;
+        }
+
+        // Apply variant-specific settings to script attributes
+        // Replace existing data-banner-position with variant position (not duplicate)
+        if (!empty($variant['position'])) {
+            // Use regex to replace existing data-banner-position value
+            $attributes = preg_replace(
+                '/data-banner-position="[^"]*"/',
+                sprintf('data-banner-position="%s"', esc_attr($variant['position'])),
+                $attributes
+            );
+        }
+
+        // Add variant ID for tracking purposes
+        $attributes .= sprintf(' data-ab-variant="%d"', $variant_id);
 
         return $attributes;
     }
@@ -332,8 +448,40 @@ class CookieNod_AB_Testing {
     private function table_exists($table_name) {
         global $wpdb;
         $table = $wpdb->prefix . $table_name;
+
+        // Validate table name to prevent SQL injection
+        if (!$this->is_valid_table_name($table)) {
+            return false;
+        }
+
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        return $wpdb->get_var("SHOW TABLES LIKE '$table'") === $table;
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+    }
+
+    /**
+     * Validate table name to prevent SQL injection
+     *
+     * @param string $table Table name to validate.
+     * @return bool True if valid, false otherwise.
+     */
+    private function is_valid_table_name($table) {
+        global $wpdb;
+
+        // Only allow known table names with wp prefix
+        $allowed_tables = array(
+            'cookienod_consent_log',
+            'cookienod_ab_tests',
+            'cookienod_ab_results',
+        );
+
+        $prefix = $wpdb->prefix;
+        foreach ($allowed_tables as $allowed) {
+            if ($table === $prefix . $allowed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -348,11 +496,11 @@ class CookieNod_AB_Testing {
 
         $ab_tests_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
         $now   = current_time( 'mysql' );
-        
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely built and escaped
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name safely built from prefix with static string
         return $wpdb->get_row(
             $wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
                 "SELECT * FROM {$ab_tests_table}
                 WHERE status = %s
                 AND start_date <= %s
@@ -389,7 +537,7 @@ class CookieNod_AB_Testing {
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'cookienod_ab_tests';
+        $table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- $wpdb->insert() is safe and intended
         $result = $wpdb->insert(
@@ -432,7 +580,7 @@ class CookieNod_AB_Testing {
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'cookienod_ab_tests';
+        $table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
 
         $data = array();
 
@@ -481,8 +629,8 @@ class CookieNod_AB_Testing {
         }
 
         global $wpdb;
-        $tests_table = $wpdb->prefix . 'cookienod_ab_tests';
-        $results_table = $wpdb->prefix . 'cookienod_ab_results';
+        $tests_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
+        $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_results' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for test deletion
         $wpdb->delete($results_table, array('test_id' => $test_id));
@@ -518,13 +666,13 @@ class CookieNod_AB_Testing {
      */
     public function get_test_stats($test_id) {
         global $wpdb;
-       
+
         $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_results' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Query is necessary and lightweight, caching not needed
         $results = $wpdb->get_results(
             $wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
                 "SELECT variant_id, event_type, COUNT(*) as count FROM {$results_table} WHERE test_id = %d GROUP BY variant_id, event_type",
                 $test_id
             ),
@@ -578,7 +726,7 @@ class CookieNod_AB_Testing {
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'cookienod_ab_tests';
+        $table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for setting test winner
         $wpdb->update($table, array(
@@ -600,12 +748,12 @@ class CookieNod_AB_Testing {
     public function get_all_tests() {
         global $wpdb;
 
-        $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_results' );
+        $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is safe, built from prefix with static string
         return $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
-            "SELECT * FROM {$results_table} ORDER BY created_at DESC",
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+            $wpdb->prepare("SELECT * FROM {$results_table} WHERE 1=%d ORDER BY created_at DESC", 1),
             ARRAY_A
         );
     }
@@ -616,13 +764,13 @@ class CookieNod_AB_Testing {
     public function get_test($test_id) {
         global $wpdb;
 
-        $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_results' );
+        $results_table = esc_sql( $wpdb->prefix . 'cookienod_ab_tests' );
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is safe, built from prefix with static string
         return $wpdb->get_row(
             $wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
-                "SELECT * FROM {$results_table} WHERE id = %d", 
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+                "SELECT * FROM {$results_table} WHERE id = %d",
                 $test_id
             ),
             ARRAY_A

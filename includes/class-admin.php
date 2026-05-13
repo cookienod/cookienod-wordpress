@@ -151,6 +151,9 @@ class CookieNod_Admin {
         if (array_key_exists('excluded_scripts', $input)) {
             $sanitized['excluded_scripts'] = sanitize_textarea_field($input['excluded_scripts']);
         }
+        if (array_key_exists('settings_title', $input)) {
+            $sanitized['settings_title'] = sanitize_text_field($input['settings_title']);
+        }
 
         // Compliance Settings
         if (array_key_exists('auto_detect_law', $input)) {
@@ -196,6 +199,45 @@ class CookieNod_Admin {
         // Custom CSS
         if (array_key_exists('custom_css', $input)) {
             $sanitized['custom_css'] = sanitize_textarea_field($input['custom_css']);
+        }
+
+        // Banner Content
+        if (array_key_exists('banner_title', $input)) {
+            $sanitized['banner_title'] = sanitize_text_field($input['banner_title']);
+        }
+        if (array_key_exists('banner_description', $input)) {
+            $sanitized['banner_description'] = sanitize_textarea_field($input['banner_description']);
+        }
+
+        // Button Labels
+        if (array_key_exists('btn_accept', $input)) {
+            $sanitized['btn_accept'] = sanitize_text_field($input['btn_accept']);
+        }
+        if (array_key_exists('btn_reject', $input)) {
+            $sanitized['btn_reject'] = sanitize_text_field($input['btn_reject']);
+        }
+        if (array_key_exists('btn_customize', $input)) {
+            $sanitized['btn_customize'] = sanitize_text_field($input['btn_customize']);
+        }
+        if (array_key_exists('btn_save', $input)) {
+            $sanitized['btn_save'] = sanitize_text_field($input['btn_save']);
+        }
+
+        // Category Labels
+        if (array_key_exists('category_necessary', $input)) {
+            $sanitized['category_necessary'] = sanitize_text_field($input['category_necessary']);
+        }
+        if (array_key_exists('category_functional', $input)) {
+            $sanitized['category_functional'] = sanitize_text_field($input['category_functional']);
+        }
+        if (array_key_exists('category_analytics', $input)) {
+            $sanitized['category_analytics'] = sanitize_text_field($input['category_analytics']);
+        }
+        if (array_key_exists('category_marketing', $input)) {
+            $sanitized['category_marketing'] = sanitize_text_field($input['category_marketing']);
+        }
+        if (array_key_exists('label_required', $input)) {
+            $sanitized['label_required'] = sanitize_text_field($input['label_required']);
         }
 
         return $sanitized;
@@ -261,12 +303,15 @@ class CookieNod_Admin {
 
         $response = wp_remote_get(
             COOKIENOD_API_ENDPOINT . '/config/' . $api_key . '?url=' . urlencode($site_url),
-            array('timeout' => 30)
+            array(
+                'timeout' => 30,
+                'sslverify' => true,
+            )
         );
 
         if (is_wp_error($response)) {
             delete_option('cookienod_wp_site_info');
-            wp_send_json_error($response->get_error_message());
+            wp_send_json_error(__('Failed to connect to Cookiebot API. Please check your server connectivity.', 'cookienod'));
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
@@ -323,12 +368,15 @@ class CookieNod_Admin {
 
         $response = wp_remote_get(
             COOKIENOD_API_ENDPOINT . '/config/' . $api_key . '/categories?url=' . urlencode($site_url),
-            array('timeout' => 30)
+            array(
+                'timeout' => 30,
+                'sslverify' => true,
+            )
         );
 
         if (is_wp_error($response)) {
             delete_option('cookienod_wp_site_info');
-            wp_send_json_error($response->get_error_message());
+            wp_send_json_error(__('Failed to connect to Cookiebot API. Please check your server connectivity.', 'cookienod'));
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
@@ -370,6 +418,7 @@ class CookieNod_Admin {
      * Render scan page
      */
     public function render_cookies_page() {
+        $this->enqueue_cookies_page_scripts();
         include COOKIENOD_PLUGIN_DIR . 'templates/cookies.php';
     }
 
@@ -377,6 +426,7 @@ class CookieNod_Admin {
      * Render consent log page
      */
     public function render_consent_log_page() {
+        $this->enqueue_consent_log_page_scripts();
         include COOKIENOD_PLUGIN_DIR . 'templates/consent-log.php';
     }
 
@@ -384,7 +434,242 @@ class CookieNod_Admin {
      * Render A/B testing page
      */
     public function render_ab_testing_page() {
+        $this->enqueue_ab_testing_page_scripts();
         include COOKIENOD_PLUGIN_DIR . 'templates/ab-testing.php';
+    }
+
+    /**
+     * Enqueue scripts and styles for cookies page
+     */
+    private function enqueue_cookies_page_scripts() {
+        $css = "
+.cookienod-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.cookienod-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.cookienod-stat {
+    text-align: center;
+    padding: 15px;
+}
+.cookienod-stat-number {
+    display: block;
+    font-size: 2.5em;
+    font-weight: bold;
+}
+.cookienod-stat-label {
+    color: #666;
+    text-transform: capitalize;
+}
+.nav-tab-wrapper {
+    border-bottom: 1px solid #ddd;
+    background: #f9f9f9;
+    padding: 10px 10px 0;
+}
+.nav-tab {
+    display: inline-block;
+    padding: 8px 16px;
+    margin-right: 5px;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    background: #f1f1f1;
+    color: #555;
+    text-decoration: none;
+    border-radius: 4px 4px 0 0;
+}
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+    color: #000;
+}
+#cookies-table tbody tr {
+    transition: background-color 0.2s;
+}
+#cookies-table tbody tr:hover {
+    background-color: #f9f9f9;
+}";
+
+        $js = '
+(function($) {
+    \'use strict\';
+
+    $(document).ready(function() {
+        // Tab switching
+        $(\'.nav-tab\').on(\'click\', function(e) {
+            e.preventDefault();
+
+            var category = $(this).data(\'category\');
+
+            $(\'.nav-tab\').removeClass(\'nav-tab-active\');
+            $(this).addClass(\'nav-tab-active\');
+
+            if (category === \'all\') {
+                $(\'#cookies-table tbody tr\').show();
+            } else {
+                $(\'#cookies-table tbody tr\').hide();
+                $(\'#cookies-table tbody tr[data-category="\' + category + \'"]\').show();
+            }
+        });
+
+        // Search functionality
+        $(\'#cookie-search\').on(\'input\', function() {
+            var search = $(this).val().toLowerCase();
+            var activeCategory = $(\'.nav-tab-active\').data(\'category\');
+
+            $(\'#cookies-table tbody tr\').each(function() {
+                var $row = $(this);
+                var text = $row.text().toLowerCase();
+                var category = $row.data(\'category\');
+
+                var matchesSearch = text.indexOf(search) >= 0;
+                var matchesCategory = activeCategory === \'all\' || category === activeCategory;
+
+                if (matchesSearch && matchesCategory) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+        });
+    });
+
+})(jQuery);';
+
+        wp_add_inline_style('cookienod-admin', $css);
+        wp_add_inline_script('cookienod-admin', $js, 'after');
+    }
+
+    /**
+     * Enqueue scripts and styles for consent log page
+     */
+    private function enqueue_consent_log_page_scripts() {
+        $css = "
+.cookienod-preferences {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.cookienod-pref-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+.cookienod-pref-badge.enabled {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cookienod-pref-badge.disabled {
+    background: #f8d7da;
+    color: #721c24;
+}";
+
+        wp_add_inline_style('cookienod-admin', $css);
+    }
+
+    /**
+     * Enqueue scripts and styles for A/B testing page
+     */
+    private function enqueue_ab_testing_page_scripts() {
+        $css = "
+.cookienod-ab-variant {
+    background: #f5f5f5;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.cookienod-ab-metrics {
+    display: flex;
+    gap: 30px;
+    margin: 20px 0;
+}
+
+.metric {
+    text-align: center;
+}
+
+.metric-value {
+    display: block;
+    font-size: 2em;
+    font-weight: 600;
+    color: #2271b1;
+}
+
+.metric-label {
+    display: block;
+    color: #646970;
+    margin-top: 5px;
+}
+
+.test-variant {
+    background: #f9f9f9;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.test-variant label {
+    display: block;
+    margin: 15px 0 5px;
+    font-weight: 500;
+}
+
+.test-variant input,
+.test-variant select {
+    width: 100%;
+}
+
+#traffic-split {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.split-slider {
+    flex: 1;
+}
+
+.split-display {
+    font-weight: 600;
+    font-size: 1.2em;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+.status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-draft {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.status-badge.status-completed {
+    background: #cce5ff;
+    color: #004085;
+}";
+
+        wp_add_inline_style('cookienod-admin', $css);
     }
 
     /**
@@ -418,17 +703,21 @@ class CookieNod_Admin {
         );
 
         $table = $wpdb->prefix . 'cookienod_consent_log';
+        // Validate table name to prevent SQL injection
+        if (!$this->is_valid_table_name($table)) {
+            return $stats;
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'") === $table;
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
 
         if ($table_exists) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-            $stats['total_consents'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM $table");
+            $stats['total_consents'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`");
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
             $stats['recent_consents'] = (int) $wpdb->get_var(
                 $wpdb->prepare(
-                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
-                    "SELECT COUNT(*) FROM {$table} WHERE created_at > DATE_SUB(NOW(), INTERVAL %d DAY)",
+                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+                    "SELECT COUNT(*) FROM `{$table}` WHERE created_at > DATE_SUB(NOW(), INTERVAL %d DAY)",
                     7
                 )
             );
@@ -462,11 +751,14 @@ class CookieNod_Admin {
         global $wpdb;
 
         $table = $wpdb->prefix . 'cookienod_consent_log';
+        if (!$this->is_valid_table_name($table)) {
+            return array();
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
         return $wpdb->get_results(
             $wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe (prefix + esc_sql)
-                "SELECT * FROM {$table} ORDER BY created_at DESC LIMIT %d",
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+                "SELECT * FROM `{$table}` ORDER BY created_at DESC LIMIT %d",
                 $limit
             ),
             ARRAY_A
@@ -531,9 +823,9 @@ class CookieNod_Admin {
     }
 
     /**
-     * Get client IP
+     * Get client IP (anonymized for GDPR compliance)
      *
-     * @return string IP address.
+     * @return string Anonymized IP address (last octet removed for IPv4, last 64 bits for IPv6).
      */
     private function get_client_ip() {
         $ip_keys = array(
@@ -542,15 +834,62 @@ class CookieNod_Admin {
             'REMOTE_ADDR',
         );
 
+        $raw_ip = '';
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- IP addresses sanitized after unslash
                 $ips = explode(',', sanitize_text_field(wp_unslash($_SERVER[$key])));
-                return trim($ips[0]);
+                $raw_ip = trim($ips[0]);
+                break;
             }
         }
 
+        if (empty($raw_ip)) {
+            return '';
+        }
+
+        // Anonymize IP for GDPR compliance - remove last octet(s)
+        if (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            // IPv4: remove last octet (e.g., 192.168.1.100 -> 192.168.1.0)
+            $parts = explode('.', $raw_ip);
+            $parts[3] = '0';
+            return implode('.', $parts);
+        } elseif (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            // IPv6: anonymize by replacing last 64 bits
+            $parts = str_split(bin2hex(inet_pton($raw_ip)), 16);
+            if (count($parts) >= 2) {
+                $parts[1] = '0000000000000000';
+            }
+            return inet_ntop(hex2bin(implode('', $parts)));
+        }
+
         return '';
+    }
+
+    /**
+     * Validate table name to prevent SQL injection
+     *
+     * @param string $table Table name to validate.
+     * @return bool True if valid, false otherwise.
+     */
+    private function is_valid_table_name($table) {
+        global $wpdb;
+
+        // Only allow known table names with wp prefix
+        $allowed_tables = array(
+            'cookienod_consent_log',
+            'cookienod_ab_tests',
+            'cookienod_ab_results',
+        );
+
+        $prefix = $wpdb->prefix;
+        foreach ($allowed_tables as $allowed) {
+            if ($table === $prefix . $allowed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -560,11 +899,32 @@ class CookieNod_Admin {
      * @return bool
      */
     public function export_consent_log($format = 'csv') {
+        // Verify nonce for CSRF protection
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            // AJAX: verify nonce passed in request
+            check_ajax_referer('cookienod_wp_nonce', 'nonce');
+        } else {
+            // Non-AJAX: verify admin referer
+            check_admin_referer('cookienod_wp_nonce');
+        }
+
+        // Verify capability
+        if (!current_user_can('manage_options')) {
+            wp_die('Permission denied');
+        }
+
         global $wpdb;
 
-        $table = $wpdb->prefix . 'cookienod_consent_log';
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC", ARRAY_A);
+        $table = esc_sql( $wpdb->prefix . 'cookienod_consent_log' );
+        if (!$this->is_valid_table_name($table)) {
+            return false;
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is safe, built from prefix
+        $results = $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+            "SELECT * FROM `{$table}` ORDER BY created_at DESC",
+            ARRAY_A
+        );
 
         if ($format === 'csv') {
             header('Content-Type: text/csv');
@@ -599,10 +959,22 @@ class CookieNod_Admin {
      * Clear consent log
      */
     public function clear_consent_log() {
+        // Verify nonce for CSRF protection - only check if not already verified via AJAX
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            // AJAX handlers verify nonce before calling this method
+        } else {
+            if (!check_admin_referer('cookienod_clear_consent_log')) {
+                wp_die('Security check failed');
+            }
+        }
+
         global $wpdb;
         $table = $wpdb->prefix . 'cookienod_consent_log';
+        if (!$this->is_valid_table_name($table)) {
+            return;
+        }
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        $wpdb->query("TRUNCATE TABLE $table");
+        $wpdb->query("TRUNCATE TABLE `{$table}`");
     }
 
     /**
@@ -628,9 +1000,20 @@ class CookieNod_Admin {
             $site_url = get_site_url();
             $api_endpoint = defined('COOKIENOD_API_ENDPOINT') ? COOKIENOD_API_ENDPOINT : 'https://api.cookienod.com';
 
-            $response = wp_remote_get(
-                $api_endpoint . '/api/sites/detected-cookies?url=' . urlencode($site_url) . '&api_key=' . urlencode($api_key),
-                array('timeout' => 30)
+            // Use POST with Authorization header instead of GET with API key in URL
+            $response = wp_remote_post(
+                $api_endpoint . '/api/sites/detected-cookies',
+                array(
+                    'timeout' => 30,
+                    'sslverify' => true,
+                    'headers' => array(
+                        'Authorization' => 'Bearer ' . $api_key,
+                        'Content-Type' => 'application/json',
+                    ),
+                    'body' => json_encode(array(
+                        'url' => $site_url,
+                    )),
+                )
             );
 
             if (!is_wp_error($response)) {

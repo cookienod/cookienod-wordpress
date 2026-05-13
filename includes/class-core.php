@@ -150,7 +150,10 @@ class CookieNod_Core {
 
         // A/B testing admin AJAX and screen functionality must always be available,
         // even before the feature is enabled for frontend use.
-        new CookieNod_AB_Testing();
+        $ab_testing = new CookieNod_AB_Testing();
+
+        // Use wp_loaded hook for cookie setting - runs after WordPress is loaded but before headers sent
+        add_action('wp_loaded', array($ab_testing, 'assign_variant'));
 
         if ($has_valid_api_key && class_exists('WooCommerce')) {
             new CookieNod_WooCommerce();
@@ -358,20 +361,69 @@ class CookieNod_Core {
     }
 
     /**
-     * Get client IP address
+     * Get client IP address (anonymized for GDPR compliance)
+     *
+     * @return string Anonymized IP address.
      */
     private function get_client_ip() {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
+        $raw_ip = '';
+
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- IP addresses sanitized after unslash
                 $ip = sanitize_text_field(wp_unslash($_SERVER[$key]));
                 if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
+                    $raw_ip = $ip;
+                    break;
                 }
             }
         }
+
+        if (empty($raw_ip)) {
+            return '0.0.0.0';
+        }
+
+        // Anonymize IP for GDPR compliance
+        if (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $parts = explode('.', $raw_ip);
+            $parts[3] = '0';
+            return implode('.', $parts);
+        } elseif (filter_var($raw_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $parts = str_split(bin2hex(inet_pton($raw_ip)), 16);
+            if (count($parts) >= 2) {
+                $parts[1] = '0000000000000000';
+            }
+            return inet_ntop(hex2bin(implode('', $parts)));
+        }
+
         return '0.0.0.0';
+    }
+
+    /**
+     * Validate table name to prevent SQL injection
+     *
+     * @param string $table Table name to validate.
+     * @return bool True if valid, false otherwise.
+     */
+    private function is_valid_table_name($table) {
+        global $wpdb;
+
+        // Only allow known table names with wp prefix
+        $allowed_tables = array(
+            'cookienod_consent_log',
+            'cookienod_ab_tests',
+            'cookienod_ab_results',
+        );
+
+        $prefix = $wpdb->prefix;
+        foreach ($allowed_tables as $allowed) {
+            if ($table === $prefix . $allowed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -388,9 +440,19 @@ class CookieNod_Core {
         $format = isset($_GET['format']) ? sanitize_text_field(wp_unslash($_GET['format'])) : 'csv';
 
         global $wpdb;
-        $table = $wpdb->prefix . 'cookienod_consent_log';
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC", ARRAY_A);
+        $table = esc_sql( $wpdb->prefix . 'cookienod_consent_log' );
+
+        // Validate table name to prevent SQL injection
+        if (!$this->is_valid_table_name($table)) {
+            wp_send_json_error('Invalid table');
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is safe, built from prefix
+        $results = $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name using $wpdb->prefix
+            "SELECT * FROM `{$table}` ORDER BY created_at DESC",
+            ARRAY_A
+        );
 
         if ($format === 'csv') {
             // Generate CSV content
@@ -434,8 +496,14 @@ class CookieNod_Core {
 
         global $wpdb;
         $table = $wpdb->prefix . 'cookienod_consent_log';
+
+        // Validate table name to prevent SQL injection
+        if (!$this->is_valid_table_name($table)) {
+            wp_send_json_error('Invalid table');
+        }
+
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is safe, built from prefix
-        $wpdb->query("TRUNCATE TABLE $table");
+        $wpdb->query("TRUNCATE TABLE `{$table}`");
 
         wp_send_json_success(array('cleared' => true));
     }
@@ -492,7 +560,7 @@ class CookieNod_Core {
         $cookies = json_decode($cookies_raw, true);
 
         if (!is_array($cookies)) {
-            wp_send_json_success(array('saved' => 0, 'error' => 'Invalid JSON', 'raw' => sanitize_text_field(substr($cookies_raw, 0, 100))));
+            wp_send_json_success(array('saved' => 0, 'error' => 'Invalid JSON'));
             return;
         }
 

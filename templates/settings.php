@@ -87,7 +87,15 @@ $cookienod_compliance = new CookieNod_Compliance();
                                 </option>
                             </select>
                             <p class="description">
-                                <?php echo wp_kses_post('<strong>Auto:</strong> JavaScript handles all cookie blocking (recommended).<br> <strong>Manual Consent Attributes:</strong> Use data-consent attributes on script tags for precise control.<br><strong>Silent:</strong> Server blocks scripts without visible placeholders.<br><strong>Placeholders:</strong> Server blocks with visible placeholder boxes (legacy mode).', 'cookienod'); ?>
+                                <?php
+                                echo wp_kses_post(
+                                    '<strong>' . esc_html__('Auto:', 'cookienod') . '</strong> ' . esc_html__('JavaScript handles all cookie blocking (recommended).', 'cookienod') . '<br>' .
+                                    '<strong>' . esc_html__('Manual Consent Attributes:', 'cookienod') . '</strong> ' . esc_html__('Use data-consent attributes on script tags for precise control.', 'cookienod') . '<br>' .
+                                    '<strong>' . esc_html__('Silent:', 'cookienod') . '</strong> ' . esc_html__('Server blocks scripts without visible placeholders.', 'cookienod') . '<br>' .
+                                    '<strong>' . esc_html__('Placeholders:', 'cookienod') . '</strong> ' . esc_html__('Server blocks with visible placeholder boxes (legacy mode).', 'cookienod'),
+                                    'cookienod'
+                                );
+                                ?>
                             </p>
                             <?php if (($cookienod_options['block_mode'] ?? 'manual') === 'manual-consent') : ?>
                             <div class="cookienod-manual-consent-docs" style="margin-top: 10px; padding: 10px; background: #f0f6fc; border-left: 4px solid #2271b1;">

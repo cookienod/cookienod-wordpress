@@ -230,28 +230,3 @@ if ($cookienod_table_exists) {
         </ul>
     </div>
 </div>
-
-<style>
-.cookienod-preferences {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.cookienod-pref-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.85em;
-}
-
-.cookienod-pref-badge.enabled {
-    background: #d4edda;
-    color: #155724;
-}
-
-.cookienod-pref-badge.disabled {
-    background: #f8d7da;
-    color: #721c24;
-}
-</style>

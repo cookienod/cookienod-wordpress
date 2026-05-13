@@ -536,24 +536,20 @@
 
         function updateCssPreview() {
             var css = $('#custom-css-editor').val();
-            var position = $('#banner_position').val() || 'bottom';
-            // Get banner theme from the read-only select on Custom CSS page
-            var bannerTheme = $('#current-banner-theme').val() || 'light';
 
             // Show loading state
             var $frame = $('#css-preview-frame');
             $frame.css('opacity', '0.5');
 
             // Call AJAX to generate preview HTML from server
+            // Position and theme are now read from database on server side
             $.ajax({
                 url: cookienodWp.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'cookienod_generate_preview',
                     nonce: cookienodWp.nonce,
-                    custom_css: css,
-                    position: position,
-                    banner_theme: bannerTheme
+                    custom_css: css
                 },
                 success: function(response) {
                     $frame.css('opacity', '1');

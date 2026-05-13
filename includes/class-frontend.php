@@ -181,7 +181,7 @@ class CookieNod_Frontend {
             false // Load in head
         );
 
-        // Add data attributes to the main script
+        // Build attributes string - include A/B testing variant if available
         $attrs = sprintf(
             ' data-license-key="%s" data-block-mode="%s" data-banner-position="%s" data-banner-theme="%s" data-texts="%s"',
             esc_attr($api_key_escaped),
@@ -190,6 +190,10 @@ class CookieNod_Frontend {
             esc_attr($theme),
             esc_attr($texts_attr)
         );
+
+        // Apply custom script attributes filter (for A/B testing, Google Consent Mode, etc.)
+        $attrs = apply_filters('cookienod_script_attributes', $attrs);
+
         add_filter(
             'script_loader_tag',
             function ($tag, $handle) use ($attrs) {
@@ -232,9 +236,8 @@ class CookieNod_Frontend {
                 $first = true;
                 foreach ($patterns as $pattern) {
                     if (empty($pattern)) continue;
-                    $escaped = str_replace("'", "\\'", $pattern);
                     if (!$first) $inline_script .= ",";
-                    $inline_script .= "'" . $escaped . "'";
+                    $inline_script .= wp_json_encode($pattern);
                     $first = false;
                 }
                 $inline_script .= "];\n";
@@ -248,7 +251,7 @@ class CookieNod_Frontend {
 
         // Consent logging and cookie detection combined
         $inline_script .= "  // Consent logging & detection\n";
-        $inline_script .= "  var aj='" . $ajax_url . "',no='" . $nonce . "';\n";
+        $inline_script .= "  var aj=" . wp_json_encode($ajax_url) . ",no=" . wp_json_encode($nonce) . ";\n";
         $inline_script .= "  var lk='cs_consent_logged_v2',dk='cs_cookies_detected';\n";
         $inline_script .= "  var sid=Math.random().toString(36).substring(2)+Date.now().toString(36);\n";
         $inline_script .= "  var rs=false,de=sessionStorage.getItem(dk)==='true';\n";
@@ -262,7 +265,7 @@ class CookieNod_Frontend {
         $inline_script .= "    if(!hc&&!f)return;\n";
         $inline_script .= "    var pr={};try{var r=localStorage.getItem('cs_cookie_prefs');if(r)pr=JSON.parse(r);}catch(e){}\n";
         $inline_script .= "    if(Object.keys(pr).length===0){if(rt<5){setTimeout(function(){logC(f,rt+1);},500);return;}\n";
-        $inline_script .= "    pr={necessary:false,functional:false,analytics:false,marketing:false;};}\n";
+        $inline_script .= "    pr={necessary:false,functional:false,analytics:false,marketing:false};}\n";
         $inline_script .= "    var ph=btoa(JSON.stringify(pr));\n";
         $inline_script .= "    if(sessionStorage.getItem(lp)===ph)return;\n";
         $inline_script .= "    sessionStorage.setItem(ld,ph);rs=true;var d=new FormData();\n";
@@ -333,10 +336,10 @@ class CookieNod_Frontend {
 
         // Theme-specific CSS
         if ($theme === 'dark') {
-            $theme_css = "#cs-consent-banner,#cs-consent-banner div{background:#1f2937 !important;color:#f9fafb !important;border-color:#374151 !important;}\n";
-            $theme_css .= "#cs-consent-banner h3,#cs-consent-banner p{color:#f9fafb !important;}\n";
-            $theme_css .= "#cs-consent-banner button{background:#374151 !important;color:#f9fafb !important;border-color:#4b5563 !important;}\n";
-            $theme_css .= "#cs-consent-banner button[id*='accept'],#cs-consent-banner button.cs-btn-primary{background:#2563eb !important;color:#fff !important;}";
+            $theme_css = ".cs-banner.cs-dark{background:#1f2937 !important;color:#f9fafb !important;border-color:#374151 !important;}\n";
+            $theme_css .= ".cs-banner.cs-dark .cs-banner-title,.cs-banner.cs-dark .cs-banner-description{color:#f9fafb !important;}\n";
+            $theme_css .= ".cs-banner.cs-dark #cs-reject-btn,.cs-banner.cs-dark #cs-customize-btn{background:#374151 !important;color:#f9fafb !important;border-color:#4b5563 !important;}\n";
+            $theme_css .= ".cs-banner.cs-dark #cs-accept-btn{background:#2563eb !important;color:#fff !important;border-color:#2563eb !important;}";
 
             wp_register_style('cookienod-theme', false, [], COOKIENOD_VERSION);
             wp_enqueue_style('cookienod-theme');

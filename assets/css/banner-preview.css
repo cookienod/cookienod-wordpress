@@ -27,7 +27,7 @@ body {
 }
 
 /* Banner base styles - light theme */
-#cs-consent-banner.light {
+.cs-banner.cs-light {
     left: 0;
     right: 0;
     background: #fff;
@@ -35,10 +35,12 @@ body {
     padding: 20px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     color: #1d2327;
+    position: fixed;
+    z-index: 999999;
 }
 
 /* Banner base styles - dark theme */
-#cs-consent-banner.dark {
+.cs-banner.cs-dark {
     left: 0;
     right: 0;
     background: #1f2937;
@@ -46,32 +48,62 @@ body {
     padding: 20px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
     color: #f9fafb;
+    position: fixed;
+    z-index: 999999;
 }
 
-/* Position styles */
-#cs-consent-banner.position-top {
-    position: absolute;
-    top: 0;
-}
-
-#cs-consent-banner.position-bottom {
-    position: absolute;
+/* Banner position - bottom (default) */
+.cs-banner.position-bottom {
     bottom: 0;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cs-banner.cs-dark.position-bottom {
+    border-top: 1px solid #374151;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Banner position - top */
+.cs-banner.position-top {
+    top: 0;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cs-banner.cs-dark.position-top {
+    border-bottom: 1px solid #374151;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Banner position - center (modal) */
+.cs-banner.cs-light.position-center,
+.cs-banner.cs-dark.position-center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* Content styles */
-#cs-consent-banner .cs-banner-title {
+.cs-banner-title {
     margin: 0 0 8px;
     font-size: 20px;
+    font-weight: bold;
     color: inherit;
 }
 
-#cs-consent-banner .cs-banner-description {
+.cs-banner-description {
     margin: 0;
     color: inherit;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-#cs-consent-banner .cs-banner-actions {
+.cs-banner-actions {
     margin-top: 15px;
     display: flex;
     gap: 10px;
@@ -79,55 +111,105 @@ body {
 }
 
 /* Button styles - light theme */
-#cs-consent-banner.light .cs-btn {
+#cs-accept-btn, #cs-reject-btn, #cs-customize-btn {
     padding: 8px 16px;
     border: 1px solid #ccc;
     background: #f6f7f7;
     color: #1d2327;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-#cs-consent-banner.light .cs-btn-primary {
+#cs-accept-btn {
     background: #2271b1;
     color: #fff;
     border-color: #2271b1;
 }
 
-#cs-consent-banner.light .cs-btn-secondary {
+#cs-reject-btn, #cs-customize-btn {
     background: transparent;
     color: inherit;
     border-color: #ccc;
 }
 
-#cs-consent-banner.light .cs-btn-tertiary {
-    background: #f0f0f1;
-}
-
 /* Button styles - dark theme */
-#cs-consent-banner.dark .cs-btn {
+.cs-banner.cs-dark #cs-accept-btn,
+.cs-banner.cs-dark #cs-reject-btn,
+.cs-banner.cs-dark #cs-customize-btn {
     padding: 8px 16px;
     border: 1px solid #4b5563;
     background: #111827;
     color: #f9fafb;
     cursor: pointer;
     border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-#cs-consent-banner.dark .cs-btn-primary {
+.cs-banner.cs-dark #cs-accept-btn {
     background: #2563eb;
     color: #fff;
     border-color: #2563eb;
 }
 
-#cs-consent-banner.dark .cs-btn-secondary {
+.cs-banner.cs-dark #cs-reject-btn,
+.cs-banner.cs-dark #cs-customize-btn {
     background: transparent;
     color: #f9fafb;
     border-color: #9ca3af;
 }
 
-#cs-consent-banner.dark .cs-btn-tertiary {
-    background: #374151;
+/* Settings Modal Styles */
+.cs-settings.cs-light {
+    background: #ffffff;
+    color: #1d2327;
+    border-radius: 8px;
+    max-width: 480px;
+    padding: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.cs-settings.cs-dark {
+    background: #1f2937;
     color: #f9fafb;
-    border-color: #4b5563;
+    border-radius: 8px;
+    max-width: 480px;
+    padding: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.cs-settings-title {
+    margin: 0 0 16px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Floating Re-Trigger Button */
+#cs-retrigger-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #2271b1;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 999998;
+}
+
+/* Category Checkboxes */
+#cs-cat-necessary,
+#cs-cat-functional,
+#cs-cat-analytics,
+#cs-cat-marketing {
+    accent-color: #10b981;
 }

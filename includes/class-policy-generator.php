@@ -187,7 +187,7 @@ class CookieNod_Policy_Generator {
             case 'introduction':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
-                    __('Introduction', 'cookienod'),
+                    esc_html__('Introduction', 'cookienod'),
                     sprintf(
                         /* translators: 1: Site name, 2: Site URL */
                         __('This Cookie Policy explains how %1$s ("we", "us", or "our") uses cookies and similar technologies when you visit our website at %2$s. This policy is designed to help you understand what cookies are, how we use them, and the choices you have regarding their use.', 'cookienod'),
@@ -199,21 +199,21 @@ class CookieNod_Policy_Generator {
             case 'what_are_cookies':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
-                    __('What Are Cookies', 'cookienod'),
-                    __('Cookies are small text files that are stored on your computer or mobile device when you visit a website. They are widely used to make websites work more efficiently and provide information to the website owners. Cookies can be "persistent" or "session" cookies.', 'cookienod')
+                    esc_html__('What Are Cookies', 'cookienod'),
+                    esc_html__('Cookies are small text files that are stored on your computer or mobile device when you visit a website. They are widely used to make websites work more efficiently and provide information to the website owners. Cookies can be "persistent" or "session" cookies.', 'cookienod')
                 );
 
             case 'how_we_use':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><ul>%s</ul>',
-                    __('How We Use Cookies', 'cookienod'),
-                    __('We use cookies for various purposes, including:', 'cookienod'),
+                    esc_html__('How We Use Cookies', 'cookienod'),
+                    esc_html__('We use cookies for various purposes, including:', 'cookienod'),
                     sprintf(
                         '<li>%s</li><li>%s</li><li>%s</li><li>%s</li>',
-                        __('Enabling certain functions of the website', 'cookienod'),
-                        __('Providing analytics about website usage', 'cookienod'),
-                        __('Remembering your preferences and settings', 'cookienod'),
-                        __('Delivering personalized content and advertisements', 'cookienod')
+                        esc_html__('Enabling certain functions of the website', 'cookienod'),
+                        esc_html__('Providing analytics about website usage', 'cookienod'),
+                        esc_html__('Remembering your preferences and settings', 'cookienod'),
+                        esc_html__('Delivering personalized content and advertisements', 'cookienod')
                     )
                 );
 
@@ -221,99 +221,99 @@ class CookieNod_Policy_Generator {
                 $table = $show_table ? $this->generate_cookie_table($cookies) : '';
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>%s',
-                    __('Types of Cookies We Use', 'cookienod'),
-                    __('The cookies we use fall into the following categories:', 'cookienod'),
+                    esc_html__('Types of Cookies We Use', 'cookienod'),
+                    esc_html__('The cookies we use fall into the following categories:', 'cookienod'),
                     $table
                 );
 
             case 'third_party':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><p>%s</p>',
-                    __('Third-Party Cookies', 'cookienod'),
-                    __('In addition to our own cookies, we may also use various third-party cookies to report usage statistics of the website, deliver advertisements, and so on.', 'cookienod'),
-                    __('These third parties may include analytics providers, advertising networks, and social media platforms. Please refer to their respective privacy policies for more information about their cookie practices.', 'cookienod')
+                    esc_html__('Third-Party Cookies', 'cookienod'),
+                    esc_html__('In addition to our own cookies, we may also use various third-party cookies to report usage statistics of the website, deliver advertisements, and so on.', 'cookienod'),
+                    esc_html__('These third parties may include analytics providers, advertising networks, and social media platforms. Please refer to their respective privacy policies for more information about their cookie practices.', 'cookienod')
                 );
 
             case 'data_retention':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
-                    __('Data Retention', 'cookienod'),
-                    __('The length of time a cookie stays on your device depends on its type. Session cookies are temporary and are deleted when you close your browser. Persistent cookies remain on your device until they expire or are deleted manually. The specific retention periods for each cookie are listed in the table above.', 'cookienod')
+                    esc_html__('Data Retention', 'cookienod'),
+                    esc_html__('The length of time a cookie stays on your device depends on its type. Session cookies are temporary and are deleted when you close your browser. Persistent cookies remain on your device until they expire or are deleted manually. The specific retention periods for each cookie are listed in the table above.', 'cookienod')
                 );
 
             case 'your_rights':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><ul>%s</ul>',
-                    __('Your Rights', 'cookienod'),
-                    __('You have the right to:', 'cookienod'),
+                    esc_html__('Your Rights', 'cookienod'),
+                    esc_html__('You have the right to:', 'cookienod'),
                     sprintf(
                         '<li>%s</li><li>%s</li><li>%s</li><li>%s</li><li>%s</li>',
-                        __('Access the personal data we hold about you', 'cookienod'),
-                        __('Rectify inaccurate personal data', 'cookienod'),
-                        __('Erase your personal data (right to be forgotten)', 'cookienod'),
-                        __('Restrict processing of your personal data', 'cookienod'),
-                        __('Object to processing of your personal data', 'cookienod')
+                        esc_html__('Access the personal data we hold about you', 'cookienod'),
+                        esc_html__('Rectify inaccurate personal data', 'cookienod'),
+                        esc_html__('Erase your personal data (right to be forgotten)', 'cookienod'),
+                        esc_html__('Restrict processing of your personal data', 'cookienod'),
+                        esc_html__('Object to processing of your personal data', 'cookienod')
                     )
                 );
 
             case 'your_rights_ca':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><ul>%s</ul>',
-                    __('Your California Privacy Rights', 'cookienod'),
-                    __('If you are a California resident, you have the following rights under the CCPA:', 'cookienod'),
+                    esc_html__('Your California Privacy Rights', 'cookienod'),
+                    esc_html__('If you are a California resident, you have the following rights under the CCPA:', 'cookienod'),
                     sprintf(
                         '<li>%s</li><li>%s</li><li>%s</li><li>%s</li>',
-                        __('Right to know what personal information is being collected', 'cookienod'),
-                        __('Right to know whether personal information is sold or disclosed', 'cookienod'),
-                        __('Right to opt-out of the sale of personal information', 'cookienod'),
-                        __('Right to non-discrimination for exercising your rights', 'cookienod')
+                        esc_html__('Right to know what personal information is being collected', 'cookienod'),
+                        esc_html__('Right to know whether personal information is sold or disclosed', 'cookienod'),
+                        esc_html__('Right to opt-out of the sale of personal information', 'cookienod'),
+                        esc_html__('Right to non-discrimination for exercising your rights', 'cookienod')
                     )
                 );
 
             case 'information_we_collect':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><ul>%s</ul>',
-                    __('Information We Collect', 'cookienod'),
-                    __('Through cookies and similar technologies, we may collect:', 'cookienod'),
+                    esc_html__('Information We Collect', 'cookienod'),
+                    esc_html__('Through cookies and similar technologies, we may collect:', 'cookienod'),
                     sprintf(
                         '<li>%s</li><li>%s</li><li>%s</li><li>%s</li>',
-                        __('Device and browser information', 'cookienod'),
-                        __('IP address and approximate location', 'cookienod'),
-                        __('Browsing behavior and interactions', 'cookienod'),
-                        __('Referral source and pages visited', 'cookienod')
+                        esc_html__('Device and browser information', 'cookienod'),
+                        esc_html__('IP address and approximate location', 'cookienod'),
+                        esc_html__('Browsing behavior and interactions', 'cookienod'),
+                        esc_html__('Referral source and pages visited', 'cookienod')
                     )
                 );
 
             case 'sale_of_personal_info':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
-                    __('Sale of Personal Information', 'cookienod'),
-                    __('We do not sell your personal information to third parties in the traditional sense. However, certain cookies and tracking technologies used by our advertising partners may be considered a "sale" of personal information under the CCPA. You can opt out of this by clicking "Do Not Sell My Personal Information" or by rejecting marketing cookies in our cookie banner.', 'cookienod')
+                    esc_html__('Sale of Personal Information', 'cookienod'),
+                    esc_html__('We do not sell your personal information to third parties in the traditional sense. However, certain cookies and tracking technologies used by our advertising partners may be considered a "sale" of personal information under the CCPA. You can opt out of this by clicking "Do Not Sell My Personal Information" or by rejecting marketing cookies in our cookie banner.', 'cookienod')
                 );
 
             case 'do_not_sell':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><p><a href="#" class="cookienod-do-not-sell">%s</a></p>',
-                    __('Do Not Sell My Personal Information', 'cookienod'),
-                    __('Under the CCPA, you have the right to opt out of the sale of your personal information. Click the link below to opt out:', 'cookienod'),
-                    __('Do Not Sell My Personal Information', 'cookienod')
+                    esc_html__('Do Not Sell My Personal Information', 'cookienod'),
+                    esc_html__('Under the CCPA, you have the right to opt out of the sale of your personal information. Click the link below to opt out:', 'cookienod'),
+                    esc_html__('Do Not Sell My Personal Information', 'cookienod')
                 );
 
             case 'managing_cookies':
                 return sprintf(
                     '<h2>%s</h2><p>%s</p><p>%s</p><ul>%s</ul>',
-                    __('Managing Cookies', 'cookienod'),
-                    __('You can manage your cookie preferences at any time by clicking the cookie settings button at the bottom of our website or by adjusting your browser settings.', 'cookienod'),
-                    __('Most web browsers allow you to control cookies through their settings. Here are links to instructions for major browsers:', 'cookienod'),
+                    esc_html__('Managing Cookies', 'cookienod'),
+                    esc_html__('You can manage your cookie preferences at any time by clicking the cookie settings button at the bottom of our website or by adjusting your browser settings.', 'cookienod'),
+                    esc_html__('Most web browsers allow you to control cookies through their settings. Here are links to instructions for major browsers:', 'cookienod'),
                     sprintf(
                         '<li><a href="https://support.google.com/chrome/answer/95647" target="_blank">%s</a></li>' .
                         '<li><a href="https://support.mozilla.org/kb/cookies-information-websites-store-on-your-computer" target="_blank">%s</a></li>' .
                         '<li><a href="https://support.apple.com/guide/safari/manage-cookies-websites-sfri11471/" target="_blank">%s</a></li>' .
                         '<li><a href="https://support.microsoft.com/help/17442" target="_blank">%s</a></li>',
-                        __('Google Chrome', 'cookienod'),
-                        __('Mozilla Firefox', 'cookienod'),
-                        __('Apple Safari', 'cookienod'),
-                        __('Microsoft Edge', 'cookienod')
+                        esc_html__('Google Chrome', 'cookienod'),
+                        esc_html__('Mozilla Firefox', 'cookienod'),
+                        esc_html__('Apple Safari', 'cookienod'),
+                        esc_html__('Microsoft Edge', 'cookienod')
                     )
                 );
 
@@ -321,7 +321,7 @@ class CookieNod_Policy_Generator {
                 $contact_email = get_option('admin_email');
                 return sprintf(
                     '<h2>%s</h2><p>%s</p>',
-                    __('Contact Us', 'cookienod'),
+                    esc_html__('Contact Us', 'cookienod'),
                     sprintf(
                         /* translators: %s: Email address or contact link */
                         __('If you have any questions about our use of cookies or this Cookie Policy, please contact us at %s.', 'cookienod'),
@@ -339,10 +339,10 @@ class CookieNod_Policy_Generator {
      */
     private function generate_cookie_table($categorized_cookies) {
         $categories = array(
-            'necessary' => __('Necessary', 'cookienod'),
-            'functional' => __('Functional', 'cookienod'),
-            'analytics' => __('Analytics', 'cookienod'),
-            'marketing' => __('Marketing', 'cookienod'),
+            'necessary' => esc_html__('Necessary', 'cookienod'),
+            'functional' => esc_html__('Functional', 'cookienod'),
+            'analytics' => esc_html__('Analytics', 'cookienod'),
+            'marketing' => esc_html__('Marketing', 'cookienod'),
         );
 
         $html = '<div class="cookienod-cookie-table">';
@@ -383,13 +383,13 @@ class CookieNod_Policy_Generator {
      */
     private function get_cookie_purpose($name, $category) {
         $purposes = array(
-            'necessary' => __('Essential for website functionality', 'cookienod'),
-            'functional' => __('Enables enhanced functionality', 'cookienod'),
-            'analytics' => __('Helps us analyze website usage', 'cookienod'),
-            'marketing' => __('Used for advertising purposes', 'cookienod'),
+            'necessary' => esc_html__('Essential for website functionality', 'cookienod'),
+            'functional' => esc_html__('Enables enhanced functionality', 'cookienod'),
+            'analytics' => esc_html__('Helps us analyze website usage', 'cookienod'),
+            'marketing' => esc_html__('Used for advertising purposes', 'cookienod'),
         );
 
-        return $purposes[$category] ?? __('Unknown purpose', 'cookienod');
+        return $purposes[$category] ?? esc_html__('Unknown purpose', 'cookienod');
     }
 
     /**
@@ -412,7 +412,7 @@ class CookieNod_Policy_Generator {
             }
         }
 
-        return $domain ?: __('First Party', 'cookienod');
+        return $domain ?: esc_html__('First Party', 'cookienod');
     }
 
     /**
