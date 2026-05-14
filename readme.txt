@@ -271,7 +271,7 @@ CookieNod processes the following data:
 * **Consent Data**: User consent preferences stored locally in the visitor browser and, if consent logging is enabled, logged in your WordPress database
 * **IP Addresses**: Logged in your WordPress database for consent audit records when consent logging is enabled
 
-The plugin loads a remote JavaScript file from `https://cookienod.com/cookienod.min.js` after a valid API key is verified. API key validation and site configuration requests are sent to `https://api.cookienod.com`. Consent logging and cookie detection requests are sent to your own site through WordPress `admin-ajax.php`.
+The plugin loads the minified JavaScript file from the local plugin directory (`assets/js/cookienod.min.js`) after a valid API key is verified. The unminified source is available at `https://www.cookienod.com/cookienod.js`. API key validation and site configuration requests are sent to `https://api.cookienod.com`. Consent logging and cookie detection requests are sent to your own site through WordPress `admin-ajax.php`.
 
 == External Services ==
 

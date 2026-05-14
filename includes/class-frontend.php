@@ -175,7 +175,7 @@ class CookieNod_Frontend {
         // Register and enqueue the main cookienod script
         wp_register_script(
             'cookienod-main',
-            'https://cookienod.com/cookienod.min.js?v=' . COOKIENOD_VERSION,
+            plugins_url('assets/js/cookienod.min.js', COOKIENOD_PLUGIN_FILE),
             array(),
             COOKIENOD_VERSION,
             false // Load in head

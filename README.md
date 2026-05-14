@@ -329,6 +329,37 @@ If you modify this plugin, simply edit the source files directly. No compilation
 
 ---
 
+## WordPress Directory vs GitHub Version
+
+This plugin is published in two versions with different script injection methods:
+
+### WordPress Directory Version (This Plugin)
+
+This version follows **WordPress coding standards** and uses WordPress native functions:
+
+- Uses `wp_enqueue_script()`, `wp_enqueue_style()`, `wp_add_inline_script()`, and `wp_add_inline_style()` for all scripts and styles
+- Complies with WordPress Plugin Directory guidelines
+- **Recommended for users installing from WordPress Admin**
+
+### GitHub Version (Alternative)
+
+The [GitHub repository](https://github.com/cookienod/cookienod-wordpress) also contains an alternative implementation that uses **output buffering** for script injection:
+
+- Uses `ob_start()` and output buffering to inject the cookie blocker directly into HTML `<head>`
+- Can block cookies earlier (before any scripts execute)
+- May provide better cookie blocking for certain edge cases
+
+**When to use the GitHub version:**
+- If you experience cookie blocking issues with the WordPress directory version
+- If third-party scripts set cookies before WordPress scripts execute
+- If you need maximum cookie blocking coverage
+
+To use the GitHub version, download the ZIP from GitHub and install manually via WordPress Admin > Plugins > Add New > Upload Plugin.
+
+---
+
+## Changelog
+
 ## Changelog
 
 ### Version 1.0.0
