@@ -336,10 +336,10 @@ class CookieNod_Frontend {
 
         // Theme-specific CSS
         if ($theme === 'dark') {
-            $theme_css = ".cs-banner.cs-dark{background:#1f2937 !important;color:#f9fafb !important;border-color:#374151 !important;}\n";
-            $theme_css .= ".cs-banner.cs-dark .cs-banner-title,.cs-banner.cs-dark .cs-banner-description{color:#f9fafb !important;}\n";
-            $theme_css .= ".cs-banner.cs-dark #cs-reject-btn,.cs-banner.cs-dark #cs-customize-btn{background:#374151 !important;color:#f9fafb !important;border-color:#4b5563 !important;}\n";
-            $theme_css .= ".cs-banner.cs-dark #cs-accept-btn{background:#2563eb !important;color:#fff !important;border-color:#2563eb !important;}";
+            $theme_css = ".cs-banner.cs-dark{background:#1f2937;color:#f9fafb;border-color:#374151;}\n";
+            $theme_css .= ".cs-banner.cs-dark .cs-banner-title,.cs-banner.cs-dark .cs-banner-description{color:#f9fafb;}\n";
+            $theme_css .= ".cs-banner.cs-dark #cs-reject-btn,.cs-banner.cs-dark #cs-customize-btn{background:#374151;color:#f9fafb;border-color:#4b5563;}\n";
+            $theme_css .= ".cs-banner.cs-dark #cs-accept-btn{background:#2563eb;color:#fff;border-color:#2563eb;}";
 
             wp_register_style('cookienod-theme', false, [], COOKIENOD_VERSION);
             wp_enqueue_style('cookienod-theme');
